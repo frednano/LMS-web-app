@@ -1,0 +1,1577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leave Management System — YISSIBI TAMO Fred Manuel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0a0e1a;
+            --bg-secondary: #111827;
+            --bg-card: #1a2236;
+            --bg-card-hover: #1f2a42;
+            --border: #2a3550;
+            --text-primary: #e8ecf4;
+            --text-secondary: #8892a8;
+            --text-muted: #5a6478;
+            --accent-cyan: #00e5c8;
+            --accent-blue: #3b82f6;
+            --accent-purple: #a855f7;
+            --accent-pink: #ec4899;
+            --accent-orange: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-green: #22c55e;
+            --glow-cyan: 0 0 20px rgba(0, 229, 200, 0.3);
+            --glow-purple: 0 0 20px rgba(168, 85, 247, 0.3);
+            --sidebar-width: 260px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        .bg-ambience {
+            position: fixed; inset: 0; z-index: 0;
+            pointer-events: none; overflow: hidden;
+        }
+        .bg-ambience::before {
+            content: ''; position: absolute; top: -200px; right: -200px;
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(0,229,200,0.06) 0%, transparent 70%);
+            animation: floatBlob 20s ease-in-out infinite;
+        }
+        .bg-ambience::after {
+            content: ''; position: absolute; bottom: -200px; left: -200px;
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(168,85,247,0.06) 0%, transparent 70%);
+            animation: floatBlob 25s ease-in-out infinite reverse;
+        }
+        @keyframes floatBlob {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(80px, -60px) scale(1.1); }
+            66% { transform: translate(-40px, 40px) scale(0.95); }
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-primary); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+        .login-container {
+            min-height: 100vh; display: flex; align-items: center;
+            justify-content: center; position: relative; z-index: 1;
+        }
+        .login-card {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 20px; padding: 48px 40px; width: 100%;
+            max-width: 440px; position: relative; overflow: hidden;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+        }
+        .login-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple), var(--accent-pink));
+        }
+        .login-logo {
+            width: 64px; height: 64px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            border-radius: 16px; display: flex; align-items: center;
+            justify-content: center; font-size: 28px; color: #fff;
+            margin: 0 auto 24px; box-shadow: var(--glow-cyan);
+        }
+        .form-input {
+            width: 100%; padding: 12px 16px;
+            background: var(--bg-primary); border: 1px solid var(--border);
+            border-radius: 10px; color: var(--text-primary);
+            font-family: 'Space Grotesk', sans-serif; font-size: 14px;
+            transition: all 0.3s ease; outline: none;
+        }
+        .form-input:focus {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 0 3px rgba(0,229,200,0.1);
+        }
+        .form-input::placeholder { color: var(--text-muted); }
+        select.form-input {
+            cursor: pointer; appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238892a8' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right 14px center;
+            padding-right: 36px;
+        }
+        textarea.form-input { resize: vertical; min-height: 80px; }
+        .form-label {
+            display: block; font-size: 13px; font-weight: 500;
+            color: var(--text-secondary); margin-bottom: 6px;
+        }
+        .btn {
+            padding: 10px 20px; border: none; border-radius: 10px;
+            font-family: 'Space Grotesk', sans-serif; font-size: 14px;
+            font-weight: 600; cursor: pointer; transition: all 0.3s ease;
+            display: inline-flex; align-items: center; gap: 8px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-cyan), #00b8a3);
+            color: #0a0e1a; box-shadow: 0 4px 15px rgba(0,229,200,0.25);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0,229,200,0.35);
+        }
+        .btn-secondary {
+            background: var(--bg-card); color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+        .btn-secondary:hover { background: var(--bg-card-hover); border-color: var(--text-muted); }
+        .btn-danger {
+            background: linear-gradient(135deg, var(--accent-red), #dc2626); color: #fff;
+        }
+        .btn-danger:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(239,68,68,0.3); }
+        .btn-success {
+            background: linear-gradient(135deg, var(--accent-green), #16a34a); color: #fff;
+        }
+        .btn-success:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(34,197,94,0.3); }
+        .btn-sm { padding: 6px 14px; font-size: 12px; border-radius: 8px; }
+        .btn-full { width: 100%; justify-content: center; padding: 14px; font-size: 15px; }
+
+        .sidebar {
+            position: fixed; left: 0; top: 0; bottom: 0;
+            width: var(--sidebar-width); background: var(--bg-secondary);
+            border-right: 1px solid var(--border); z-index: 50;
+            display: flex; flex-direction: column; transition: transform 0.3s ease;
+        }
+        .sidebar-brand {
+            padding: 24px 20px; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: 12px;
+        }
+        .sidebar-brand-icon {
+            width: 40px; height: 40px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            border-radius: 12px; display: flex; align-items: center;
+            justify-content: center; font-size: 18px; color: #fff; flex-shrink: 0;
+        }
+        .sidebar-brand h2 { font-size: 16px; font-weight: 700; line-height: 1.2; color: var(--text-primary); }
+        .sidebar-brand span { font-size: 11px; color: var(--text-muted); font-weight: 400; }
+        .sidebar-nav { flex: 1; padding: 16px 12px; overflow-y: auto; }
+        .nav-section-title {
+            font-size: 10px; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 1.5px; color: var(--text-muted); padding: 12px 12px 8px;
+        }
+        .nav-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 11px 14px; border-radius: 10px; color: var(--text-secondary);
+            cursor: pointer; transition: all 0.2s ease; font-size: 14px;
+            font-weight: 500; margin-bottom: 2px; position: relative;
+        }
+        .nav-item:hover { background: rgba(0,229,200,0.05); color: var(--text-primary); }
+        .nav-item.active { background: rgba(0,229,200,0.1); color: var(--accent-cyan); }
+        .nav-item.active::before {
+            content: ''; position: absolute; left: 0; top: 50%;
+            transform: translateY(-50%); width: 3px; height: 20px;
+            background: var(--accent-cyan); border-radius: 0 3px 3px 0;
+        }
+        .nav-item i { width: 20px; text-align: center; font-size: 15px; }
+        .nav-badge {
+            margin-left: auto; background: var(--accent-red); color: #fff;
+            font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 10px;
+        }
+        .sidebar-footer { padding: 16px 12px; border-top: 1px solid var(--border); }
+        .sidebar-user {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 12px; border-radius: 10px; background: var(--bg-card);
+        }
+        .sidebar-avatar {
+            width: 36px; height: 36px; border-radius: 10px;
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; font-weight: 700; color: #fff; flex-shrink: 0;
+        }
+        .sidebar-user-info h4 { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+        .sidebar-user-info p { font-size: 11px; color: var(--text-muted); }
+
+        .main-content {
+            margin-left: var(--sidebar-width); min-height: 100vh;
+            position: relative; z-index: 1;
+        }
+        .topbar {
+            position: sticky; top: 0; z-index: 40;
+            background: rgba(10,14,26,0.8); backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border); padding: 14px 32px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .topbar-left { display: flex; align-items: center; gap: 16px; }
+        .topbar-title { font-size: 20px; font-weight: 700; }
+        .topbar-right { display: flex; align-items: center; gap: 12px; }
+        .mobile-toggle {
+            display: none; background: none; border: none;
+            color: var(--text-primary); font-size: 20px; cursor: pointer; padding: 4px;
+        }
+        .page-content { padding: 28px 32px; }
+
+        .card {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 14px; padding: 24px; transition: all 0.3s ease;
+        }
+        .card:hover { border-color: rgba(0,229,200,0.2); }
+        .card-header {
+            display: flex; align-items: center;
+            justify-content: space-between; margin-bottom: 20px;
+        }
+        .card-title { font-size: 16px; font-weight: 600; }
+
+        .stat-card {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 14px; padding: 22px; transition: all 0.3s ease;
+            position: relative; overflow: hidden;
+        }
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .stat-icon {
+            width: 44px; height: 44px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; margin-bottom: 14px;
+        }
+        .stat-value { font-size: 28px; font-weight: 700; line-height: 1; margin-bottom: 4px; }
+        .stat-label { font-size: 13px; color: var(--text-secondary); }
+        .stat-change {
+            font-size: 11px; font-weight: 600; margin-top: 8px;
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 2px 8px; border-radius: 6px;
+        }
+
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table thead th {
+            padding: 12px 16px; text-align: left; font-size: 11px;
+            font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
+            color: var(--text-muted); border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+        .data-table tbody td {
+            padding: 14px 16px; font-size: 14px;
+            border-bottom: 1px solid rgba(42,53,80,0.5); vertical-align: middle;
+        }
+        .data-table tbody tr { transition: background 0.2s ease; }
+        .data-table tbody tr:hover { background: rgba(0,229,200,0.03); }
+        .data-table tbody tr:last-child td { border-bottom: none; }
+
+        .badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 600;
+        }
+        .badge-pending { background: rgba(245,158,11,0.15); color: var(--accent-orange); }
+        .badge-approved { background: rgba(34,197,94,0.15); color: var(--accent-green); }
+        .badge-rejected { background: rgba(239,68,68,0.15); color: var(--accent-red); }
+        .badge-leave { background: rgba(59,130,246,0.15); color: var(--accent-blue); }
+        .badge-sick { background: rgba(236,72,153,0.15); color: var(--accent-pink); }
+        .badge-personal { background: rgba(168,85,247,0.15); color: var(--accent-purple); }
+        .badge-annual { background: rgba(0,229,200,0.15); color: var(--accent-cyan); }
+
+        .toast-container {
+            position: fixed; top: 20px; right: 20px; z-index: 9999;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .toast {
+            padding: 14px 20px; border-radius: 12px; font-size: 14px;
+            font-weight: 500; display: flex; align-items: center; gap: 10px;
+            animation: slideInToast 0.4s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            min-width: 300px; border: 1px solid;
+        }
+        .toast-success { background: rgba(34,197,94,0.15); border-color: rgba(34,197,94,0.3); color: var(--accent-green); }
+        .toast-error { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.3); color: var(--accent-red); }
+        .toast-info { background: rgba(59,130,246,0.15); border-color: rgba(59,130,246,0.3); color: var(--accent-blue); }
+        @keyframes slideInToast {
+            from { opacity: 0; transform: translateX(40px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes slideOutToast {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(40px); }
+        }
+
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px); z-index: 100;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        .modal {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 16px; padding: 28px; max-width: 520px;
+            width: 90%; transform: scale(0.9); transition: transform 0.3s ease;
+            max-height: 90vh; overflow-y: auto;
+        }
+        .modal-overlay.active .modal { transform: scale(1); }
+
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+        .cal-header-cell {
+            text-align: center; font-size: 11px; font-weight: 600;
+            color: var(--text-muted); padding: 8px 0; text-transform: uppercase;
+        }
+        .cal-cell {
+            aspect-ratio: 1; display: flex; align-items: center;
+            justify-content: center; font-size: 13px; border-radius: 10px;
+            cursor: pointer; transition: all 0.2s ease; position: relative;
+            color: var(--text-secondary);
+        }
+        .cal-cell:hover { background: var(--bg-card-hover); }
+        .cal-cell.today {
+            background: rgba(0,229,200,0.15); color: var(--accent-cyan); font-weight: 700;
+        }
+        .cal-cell.has-leave::after {
+            content: ''; position: absolute; bottom: 4px;
+            width: 5px; height: 5px; border-radius: 50%; background: var(--accent-purple);
+        }
+        .cal-cell.other-month { color: var(--text-muted); opacity: 0.4; }
+
+        .profile-avatar-lg {
+            width: 100px; height: 100px; border-radius: 20px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            display: flex; align-items: center; justify-content: center;
+            font-size: 36px; font-weight: 700; color: #fff; box-shadow: var(--glow-cyan);
+        }
+        .info-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 0; border-bottom: 1px solid rgba(42,53,80,0.5);
+        }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; }
+        .info-value { font-size: 14px; font-weight: 500; color: var(--text-primary); }
+
+        .search-box { position: relative; display: inline-flex; align-items: center; }
+        .search-box i { position: absolute; left: 14px; color: var(--text-muted); font-size: 14px; }
+        .search-box input { padding-left: 40px; width: 280px; }
+
+        .fade-in { animation: fadeIn 0.5s ease; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .stagger-1 { animation-delay: 0.05s; opacity: 0; animation-fill-mode: forwards; }
+        .stagger-2 { animation-delay: 0.1s; opacity: 0; animation-fill-mode: forwards; }
+        .stagger-3 { animation-delay: 0.15s; opacity: 0; animation-fill-mode: forwards; }
+        .stagger-4 { animation-delay: 0.2s; opacity: 0; animation-fill-mode: forwards; }
+
+        @media (max-width: 1024px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0; }
+            .mobile-toggle { display: block; }
+            .page-content { padding: 20px 16px; }
+            .topbar { padding: 14px 16px; }
+        }
+        @media (max-width: 640px) {
+            .stat-grid, .resp-grid-2 { grid-template-columns: 1fr !important; }
+            .search-box input { width: 200px; }
+            .login-card { margin: 16px; padding: 32px 24px; }
+        }
+        .text-cyan { color: var(--accent-cyan); }
+        .text-purple { color: var(--accent-purple); }
+        .text-orange { color: var(--accent-orange); }
+        .text-green { color: var(--accent-green); }
+        .text-red { color: var(--accent-red); }
+        .text-muted { color: var(--text-muted); }
+        .text-secondary { color: var(--text-secondary); }
+        .gradient-text {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .sidebar-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.5); z-index: 45;
+        }
+        .sidebar-overlay.active { display: block; }
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; } 50% { opacity: 0.4; }
+        }
+        .pulse-dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: var(--accent-orange);
+            animation: pulse-dot 1.5s ease-in-out infinite; display: inline-block;
+        }
+        .chart-container { position: relative; height: 260px; }
+        .balance-bar-bg {
+            height: 8px; background: var(--bg-primary);
+            border-radius: 4px; overflow: hidden;
+        }
+        .balance-bar-fill { height: 100%; border-radius: 4px; transition: width 1s ease; }
+        .reset-link {
+            background: none; border: none; color: var(--accent-red);
+            cursor: pointer; font-size: 12px; font-family: 'Space Grotesk', sans-serif;
+            text-decoration: underline; text-underline-offset: 3px;
+        }
+        .reset-link:hover { color: #f87171; }
+    </style>
+</head>
+<body>
+    <div class="bg-ambience"></div>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- ===================== LOGIN PAGE ===================== -->
+    <div id="loginPage" class="login-container">
+        <div class="login-card fade-in">
+            <div class="login-logo"><i class="fas fa-calendar-check"></i></div>
+            <h1 style="text-align:center; font-size:24px; font-weight:700; margin-bottom:4px;">Leave Manager</h1>
+            <p style="text-align:center; color:var(--text-muted); font-size:13px; margin-bottom:32px;">Sign in to your account to continue</p>
+            <form id="loginForm">
+                <div style="margin-bottom:18px;">
+                    <label class="form-label">Username</label>
+                    <input type="text" id="loginUsername" class="form-input" placeholder="Enter your username" required autocomplete="off">
+                </div>
+                <div style="margin-bottom:6px;">
+                    <label class="form-label">Password</label>
+                    <div style="position:relative;">
+                        <input type="password" id="loginPassword" class="form-input" placeholder="Enter your password" required>
+                        <button type="button" id="pwdToggleBtn" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text-muted); cursor:pointer;">
+                            <i class="fas fa-eye" id="pwdToggleIcon"></i>
+                        </button>
+                    </div>
+                </div>
+                <div style="margin-bottom:24px; display:flex; justify-content:space-between; align-items:center;">
+                    <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-secondary); cursor:pointer;">
+                        <input type="checkbox" style="accent-color:var(--accent-cyan);"> Remember me
+                    </label>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full" id="loginSubmitBtn">
+                    <i class="fas fa-sign-in-alt"></i> Sign In
+                </button>
+            </form>
+            <!-- <div style="margin-top:24px; padding-top:20px; border-top:1px solid var(--border);">
+                <p style="font-size:11px; color:var(--text-muted); text-align:center; margin-bottom:10px;">Demo Accounts</p>
+                <div style="display:grid; gap:6px; font-size:11px; color:var(--text-secondary); font-family:'JetBrains Mono',monospace;">
+                    <div style="display:flex; justify-content:space-between; background:var(--bg-primary); padding:8px 12px; border-radius:8px; cursor:pointer;" onclick="fillLogin('SuperAdmin','1234')">
+                        <span>SuperAdmin</span><span class="text-cyan">/ 1234</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; background:var(--bg-primary); padding:8px 12px; border-radius:8px; cursor:pointer;" onclick="fillLogin('hr_admin','admin123')">
+                        <span>hr_admin</span><span class="text-purple">/ admin123</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; background:var(--bg-primary); padding:8px 12px; border-radius:8px; cursor:pointer;" onclick="fillLogin('fred_tamo','emp123')">
+                        <span>fred_tamo</span><span class="text-orange">/ emp123</span>
+                    </div>
+                </div>
+            </div> -->
+            <div style="text-align:center; margin-top:14px;">
+                <button class="reset-link" onclick="resetAllData()"><i class="fas fa-redo"></i> Reset demo data if login fails</button>
+            </div>
+            <p style="text-align:center; font-size:11px; color:var(--text-muted); margin-top:10px;">
+                YISSIBI TAMO Fred Manuel &mdash; Leave Management System
+            </p>
+        </div>
+    </div>
+
+    <!-- ===================== APP SHELL ===================== -->
+    <div id="appShell" style="display:none;">
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <div class="sidebar-brand-icon"><i class="fas fa-calendar-check"></i></div>
+                <div><h2>Leave Manager</h2><span>Management System</span></div>
+            </div>
+            <nav class="sidebar-nav" id="sidebarNav"></nav>
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="sidebar-avatar" id="sidebarAvatar">FT</div>
+                    <div class="sidebar-user-info">
+                        <h4 id="sidebarUserName">User</h4>
+                        <p id="sidebarUserRole">Role</p>
+                    </div>
+                    <button id="logoutBtn" title="Logout" style="margin-left:auto; background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:16px;">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+        <div class="main-content">
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="mobile-toggle" id="mobileToggleBtn"><i class="fas fa-bars"></i></button>
+                    <h1 class="topbar-title" id="pageTitle">Dashboard</h1>
+                </div>
+                <div class="topbar-right">
+                    <span style="font-size:13px; color:var(--text-secondary);" id="currentDate"></span>
+                </div>
+            </header>
+            <div class="page-content" id="pageContent"></div>
+        </div>
+    </div>
+
+    <!-- ===================== MODAL ===================== -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal" id="modalContent"></div>
+    </div>
+
+    <script>
+    // ========================================================
+    // DATA LAYER
+    // ========================================================
+    var STORAGE_KEY = 'lms_data_v2';
+
+    var DEFAULT_USERS = [
+        { id: 1, username: 'SuperAdmin', password: '1234', fullName: 'System Administrator', role: 'super_admin', email: 'super@lms.com', department: 'Management', joinDate: '2024-01-01' },
+        { id: 2, username: 'hr_admin', password: 'admin123', fullName: 'Sarah Johnson', role: 'admin', email: 'sarah@lms.com', department: 'Human Resources', joinDate: '2024-02-15' },
+        { id: 3, username: 'fred_tamo', password: 'emp123', fullName: 'YISSIBI TAMO Fred Manuel', role: 'employee', email: 'fred.tamo@lms.com', department: 'Engineering', joinDate: '2024-03-01', leaveBalance: { annual: 20, sick: 10, personal: 5, used: 4 } },
+        { id: 4, username: 'john_doe', password: 'emp123', fullName: 'John Doe', role: 'employee', email: 'john@lms.com', department: 'Marketing', joinDate: '2024-03-15', leaveBalance: { annual: 20, sick: 10, personal: 5, used: 7 } },
+        { id: 5, username: 'jane_smith', password: 'emp123', fullName: 'Jane Smith', role: 'employee', email: 'jane@lms.com', department: 'Engineering', joinDate: '2024-04-01', leaveBalance: { annual: 20, sick: 10, personal: 5, used: 2 } },
+        { id: 6, username: 'mike_wilson', password: 'emp123', fullName: 'Mike Wilson', role: 'employee', email: 'mike@lms.com', department: 'Finance', joinDate: '2024-02-01', leaveBalance: { annual: 20, sick: 10, personal: 5, used: 10 } }
+    ];
+
+    var DEFAULT_LEAVES = [
+        { id: 1, userId: 3, leaveType: 'annual', startDate: '2026-04-07', endDate: '2026-04-09', reason: 'Family vacation planned for Easter break', status: 'pending', createdAt: '2026-04-03' },
+        { id: 2, userId: 3, leaveType: 'sick', startDate: '2026-03-20', endDate: '2026-03-21', reason: 'Flu symptoms, doctor appointment scheduled', status: 'approved', createdAt: '2026-03-19' },
+        { id: 3, userId: 4, leaveType: 'personal', startDate: '2026-04-10', endDate: '2026-04-10', reason: 'Personal errands — banking and documentation', status: 'pending', createdAt: '2026-04-02' },
+        { id: 4, userId: 5, leaveType: 'annual', startDate: '2026-04-14', endDate: '2026-04-18', reason: 'International travel for a friend wedding ceremony', status: 'pending', createdAt: '2026-04-01' },
+        { id: 5, userId: 6, leaveType: 'sick', startDate: '2026-03-25', endDate: '2026-03-27', reason: 'Back injury recovery, under medical supervision', status: 'approved', createdAt: '2026-03-24' },
+        { id: 6, userId: 4, leaveType: 'annual', startDate: '2026-03-10', endDate: '2026-03-12', reason: 'Short trip to visit relatives out of state', status: 'approved', createdAt: '2026-03-08' },
+        { id: 7, userId: 3, leaveType: 'personal', startDate: '2026-02-14', endDate: '2026-02-14', reason: 'Valentines Day personal commitments', status: 'approved', createdAt: '2026-02-12' },
+        { id: 8, userId: 6, leaveType: 'annual', startDate: '2026-04-20', endDate: '2026-04-22', reason: 'Attending professional development conference', status: 'rejected', createdAt: '2026-04-05' },
+        { id: 9, userId: 5, leaveType: 'sick', startDate: '2026-04-02', endDate: '2026-04-03', reason: 'Migraine and fatigue, needs rest', status: 'approved', createdAt: '2026-04-01' },
+        { id: 10, userId: 4, leaveType: 'sick', startDate: '2026-04-08', endDate: '2026-04-08', reason: 'Dental emergency appointment', status: 'pending', createdAt: '2026-04-06' }
+    ];
+
+    function createFreshData() {
+        return {
+            users: JSON.parse(JSON.stringify(DEFAULT_USERS)),
+            leaves: JSON.parse(JSON.stringify(DEFAULT_LEAVES))
+        };
+    }
+
+    function loadData() {
+        try {
+            var raw = localStorage.getItem(STORAGE_KEY);
+            if (raw) {
+                var data = JSON.parse(raw);
+                if (data && data.users && Array.isArray(data.users) && data.users.length > 0) {
+                    // Verify SuperAdmin still exists with correct password
+                    var sa = data.users.find(function(u) { return u.id === 1; });
+                    if (sa && sa.username === 'SuperAdmin' && sa.password === '1234') {
+                        return data;
+                    }
+                }
+            }
+        } catch(e) {
+            console.error('loadData error:', e);
+        }
+        // Fallback: create fresh
+        var fresh = createFreshData();
+        saveData(fresh);
+        return fresh;
+    }
+
+    function saveData(data) {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        } catch(e) {
+            console.error('saveData error:', e);
+        }
+    }
+
+    function resetAllData() {
+        localStorage.removeItem(STORAGE_KEY);
+        sessionStorage.removeItem('lms_session');
+        APP_DATA = createFreshData();
+        saveData(APP_DATA);
+        CURRENT_USER = null;
+        document.getElementById('appShell').style.display = 'none';
+        document.getElementById('loginPage').style.display = 'flex';
+        document.getElementById('loginForm').reset();
+        showToast('Demo data has been reset. Try logging in now.', 'info');
+    }
+
+    var APP_DATA = loadData();
+    var CURRENT_USER = null;
+    var CURRENT_PAGE = 'dashboard';
+
+    // ========================================================
+    // UTILITY FUNCTIONS
+    // ========================================================
+    function getInitials(name) {
+        if (!name) return '??';
+        return name.split(' ').filter(function(w) { return w.length > 0; }).map(function(w) { return w[0].toUpperCase(); }).slice(0, 2).join('');
+    }
+
+    function formatDate(dateStr) {
+        if (!dateStr) return '—';
+        var d = new Date(dateStr + 'T00:00:00');
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function calcDays(start, end) {
+        var s = new Date(start), e = new Date(end);
+        return Math.max(1, Math.round((e - s) / (1000 * 60 * 60 * 24)) + 1);
+    }
+
+    function getLeaveBadgeClass(type) {
+        var map = { annual: 'badge-annual', sick: 'badge-sick', personal: 'badge-personal' };
+        return map[type] || 'badge-leave';
+    }
+
+    function getStatusBadge(status) {
+        var cls = { pending: 'badge-pending', approved: 'badge-approved', rejected: 'badge-rejected' };
+        var icon = { pending: '<span class="pulse-dot"></span>', approved: '<i class="fas fa-check" style="font-size:10px;"></i>', rejected: '<i class="fas fa-times" style="font-size:10px;"></i>' };
+        return '<span class="badge ' + (cls[status] || '') + '">' + (icon[status] || '') + ' ' + status.charAt(0).toUpperCase() + status.slice(1) + '</span>';
+    }
+
+    function getPendingCount() {
+        return APP_DATA.leaves.filter(function(l) { return l.status === 'pending'; }).length;
+    }
+
+    function showToast(message, type) {
+        type = type || 'success';
+        var container = document.getElementById('toastContainer');
+        var icon = { success: 'fa-check-circle', error: 'fa-exclamation-circle', info: 'fa-info-circle' };
+        var toast = document.createElement('div');
+        toast.className = 'toast toast-' + type;
+        toast.innerHTML = '<i class="fas ' + (icon[type] || 'fa-info-circle') + '"></i> ' + message;
+        container.appendChild(toast);
+        setTimeout(function() {
+            toast.style.animation = 'slideOutToast 0.4s ease forwards';
+            setTimeout(function() { toast.remove(); }, 400);
+        }, 3500);
+    }
+
+    function openModal(html) {
+        document.getElementById('modalContent').innerHTML = html;
+        document.getElementById('modalOverlay').classList.add('active');
+    }
+
+    function closeModalForce() {
+        document.getElementById('modalOverlay').classList.remove('active');
+    }
+
+    // ========================================================
+    // AUTH
+    // ========================================================
+    function fillLogin(user, pass) {
+        document.getElementById('loginUsername').value = user;
+        document.getElementById('loginPassword').value = pass;
+    }
+
+    function handleLogin(e) {
+        e.preventDefault();
+        var username = document.getElementById('loginUsername').value.trim();
+        var password = document.getElementById('loginPassword').value;
+
+        console.log('Login attempt:', username, 'password length:', password.length);
+        console.log('Users in DB:', APP_DATA.users.map(function(u) { return u.username + ':' + u.password; }));
+
+        var user = null;
+        for (var i = 0; i < APP_DATA.users.length; i++) {
+            if (APP_DATA.users[i].username === username && APP_DATA.users[i].password === password) {
+                user = APP_DATA.users[i];
+                break;
+            }
+        }
+
+        if (!user) {
+            showToast('Invalid username or password. Try the Reset button below.', 'error');
+            return;
+        }
+
+        CURRENT_USER = user;
+        try {
+            sessionStorage.setItem('lms_session', JSON.stringify({ userId: user.id }));
+        } catch(e) { /* ignore */ }
+        showToast('Welcome back, ' + user.fullName.split(' ')[0] + '!', 'success');
+        enterApp();
+    }
+
+    function handleLogout() {
+        CURRENT_USER = null;
+        try { sessionStorage.removeItem('lms_session'); } catch(e) {}
+        destroyCharts();
+        document.getElementById('appShell').style.display = 'none';
+        document.getElementById('loginPage').style.display = 'flex';
+        document.getElementById('loginForm').reset();
+    }
+
+    function destroyCharts() {
+        var ids = ['_dashChart1','_dashChart2','_reportChart1','_reportChart2'];
+        ids.forEach(function(id) {
+            if (window[id]) { try { window[id].destroy(); } catch(e) {} window[id] = null; }
+        });
+    }
+
+    // ========================================================
+    // WIRE UP EVENT LISTENERS (after DOM ready)
+    // ========================================================
+    document.getElementById('loginForm').addEventListener('submit', handleLogin);
+    document.getElementById('pwdToggleBtn').addEventListener('click', function() {
+        var inp = document.getElementById('loginPassword');
+        var icon = document.getElementById('pwdToggleIcon');
+        if (inp.type === 'password') { inp.type = 'text'; icon.className = 'fas fa-eye-slash'; }
+        else { inp.type = 'password'; icon.className = 'fas fa-eye'; }
+    });
+    document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+    document.getElementById('mobileToggleBtn').addEventListener('click', toggleSidebar);
+    document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar);
+    document.getElementById('modalOverlay').addEventListener('click', function(e) {
+        if (e.target === this) closeModalForce();
+    });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeModalForce();
+    });
+
+    // ========================================================
+    // CHECK SESSION ON LOAD
+    // ========================================================
+    (function checkSession() {
+        try {
+            var session = sessionStorage.getItem('lms_session');
+            if (session) {
+                var parsed = JSON.parse(session);
+                var userId = parsed.userId;
+                for (var i = 0; i < APP_DATA.users.length; i++) {
+                    if (APP_DATA.users[i].id === userId) {
+                        CURRENT_USER = APP_DATA.users[i];
+                        enterApp();
+                        return;
+                    }
+                }
+            }
+        } catch(e) {}
+        document.getElementById('loginPage').style.display = 'flex';
+    })();
+
+    // ========================================================
+    // APP ENTRY
+    // ========================================================
+    function enterApp() {
+        document.getElementById('loginPage').style.display = 'none';
+        document.getElementById('appShell').style.display = 'block';
+        document.getElementById('sidebarAvatar').textContent = getInitials(CURRENT_USER.fullName);
+        document.getElementById('sidebarUserName').textContent = CURRENT_USER.fullName.split(' ').slice(0, 2).join(' ');
+        var roleLabels = { super_admin: 'Super Admin', admin: 'HR Admin', employee: 'Employee' };
+        document.getElementById('sidebarUserRole').textContent = roleLabels[CURRENT_USER.role] || CURRENT_USER.role;
+        buildSidebarNav();
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        navigateTo('dashboard');
+    }
+
+    // ========================================================
+    // SIDEBAR
+    // ========================================================
+    function buildSidebarNav() {
+        var nav = document.getElementById('sidebarNav');
+        var role = CURRENT_USER.role;
+        var pc = getPendingCount();
+        var html = '';
+
+        function addSection(title, items) {
+            html += '<div class="nav-section-title">' + title + '</div>';
+            items.forEach(function(item) {
+                html += '<div class="nav-item" data-page="' + item.page + '">'
+                    + '<i class="fas ' + item.icon + '"></i> ' + item.label
+                    + (item.badge ? '<span class="nav-badge">' + item.badge + '</span>' : '')
+                    + '</div>';
+            });
+        }
+
+        if (role === 'super_admin') {
+            addSection('Overview', [{ page: 'dashboard', icon: 'fa-chart-pie', label: 'Dashboard' }]);
+            addSection('Management', [
+                { page: 'approvals', icon: 'fa-check-double', label: 'Approvals', badge: pc || null },
+                { page: 'users', icon: 'fa-users-cog', label: 'User Management' }
+            ]);
+            addSection('Tools', [
+                { page: 'calendar', icon: 'fa-calendar-alt', label: 'Calendar' },
+                { page: 'reports', icon: 'fa-chart-bar', label: 'Reports' },
+                { page: 'profile', icon: 'fa-user-circle', label: 'Profile' }
+            ]);
+        } else if (role === 'admin') {
+            addSection('Overview', [{ page: 'dashboard', icon: 'fa-chart-pie', label: 'Dashboard' }]);
+            addSection('Leave Management', [
+                { page: 'apply-leave', icon: 'fa-paper-plane', label: 'Apply Leave' },
+                { page: 'approvals', icon: 'fa-check-double', label: 'Approvals', badge: pc || null },
+                { page: 'leave-history', icon: 'fa-history', label: 'Leave History' }
+            ]);
+            addSection('Tools', [
+                { page: 'calendar', icon: 'fa-calendar-alt', label: 'Calendar' },
+                { page: 'reports', icon: 'fa-chart-bar', label: 'Reports' },
+                { page: 'profile', icon: 'fa-user-circle', label: 'Profile' }
+            ]);
+        } else {
+            addSection('Overview', [{ page: 'dashboard', icon: 'fa-chart-pie', label: 'Dashboard' }]);
+            addSection('Leave', [
+                { page: 'apply-leave', icon: 'fa-paper-plane', label: 'Apply Leave' },
+                { page: 'leave-history', icon: 'fa-history', label: 'Leave History' }
+            ]);
+            addSection('Tools', [
+                { page: 'calendar', icon: 'fa-calendar-alt', label: 'Calendar' },
+                { page: 'profile', icon: 'fa-user-circle', label: 'Profile' }
+            ]);
+        }
+
+        nav.innerHTML = html;
+
+        // Attach click handlers via delegation
+        nav.onclick = function(e) {
+            var item = e.target.closest('.nav-item');
+            if (item) navigateTo(item.getAttribute('data-page'));
+        };
+    }
+
+    function navigateTo(page) {
+        CURRENT_PAGE = page;
+        document.querySelectorAll('.nav-item').forEach(function(el) {
+            el.classList.toggle('active', el.getAttribute('data-page') === page);
+        });
+        closeSidebar();
+
+        var titles = {
+            'dashboard': 'Dashboard', 'apply-leave': 'Apply for Leave',
+            'approvals': 'Leave Approvals', 'leave-history': 'Leave History',
+            'calendar': 'Leave Calendar', 'reports': 'Reports & Analytics',
+            'profile': 'My Profile', 'users': 'User Management'
+        };
+        document.getElementById('pageTitle').textContent = titles[page] || 'Dashboard';
+        destroyCharts();
+
+        var renderers = {
+            'dashboard': renderDashboard, 'apply-leave': renderApplyLeave,
+            'approvals': renderApprovals, 'leave-history': renderLeaveHistory,
+            'calendar': renderCalendar, 'reports': renderReports,
+            'profile': renderProfile, 'users': renderUserManagement
+        };
+        (renderers[page] || renderDashboard)();
+    }
+
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('open');
+        document.getElementById('sidebarOverlay').classList.toggle('active');
+    }
+    function closeSidebar() {
+        document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('sidebarOverlay').classList.remove('active');
+    }
+
+    // ========================================================
+    // PAGE: DASHBOARD
+    // ========================================================
+    function renderDashboard() {
+        var role = CURRENT_USER.role;
+        var leaves = APP_DATA.leaves;
+        var users = APP_DATA.users;
+        var container = document.getElementById('pageContent');
+        var statsHtml = '';
+
+        if (role === 'employee') {
+            var myLeaves = leaves.filter(function(l) { return l.userId === CURRENT_USER.id; });
+            var bal = CURRENT_USER.leaveBalance || { annual: 20, sick: 10, personal: 5, used: 0 };
+            var pending = myLeaves.filter(function(l) { return l.status === 'pending'; }).length;
+            var approved = myLeaves.filter(function(l) { return l.status === 'approved'; }).length;
+            var remaining = (bal.annual + bal.sick + bal.personal) - bal.used;
+
+            statsHtml = '<div class="stat-grid" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:16px; margin-bottom:28px;">'
+                + '<div class="stat-card fade-in stagger-1"><div class="stat-icon" style="background:rgba(0,229,200,0.12); color:var(--accent-cyan);"><i class="fas fa-layer-group"></i></div><div class="stat-value text-cyan">' + remaining + '</div><div class="stat-label">Remaining Leaves</div><div class="stat-change" style="background:rgba(0,229,200,0.1); color:var(--accent-cyan);"><i class="fas fa-arrow-up"></i> Available</div></div>'
+                + '<div class="stat-card fade-in stagger-2"><div class="stat-icon" style="background:rgba(245,158,11,0.12); color:var(--accent-orange);"><i class="fas fa-clock"></i></div><div class="stat-value text-orange">' + pending + '</div><div class="stat-label">Pending Requests</div>' + (pending ? '<div class="stat-change" style="background:rgba(245,158,11,0.1); color:var(--accent-orange);"><span class="pulse-dot"></span> Awaiting</div>' : '') + '</div>'
+                + '<div class="stat-card fade-in stagger-3"><div class="stat-icon" style="background:rgba(34,197,94,0.12); color:var(--accent-green);"><i class="fas fa-check-circle"></i></div><div class="stat-value text-green">' + approved + '</div><div class="stat-label">Approved Leaves</div></div>'
+                + '<div class="stat-card fade-in stagger-4"><div class="stat-icon" style="background:rgba(168,85,247,0.12); color:var(--accent-purple);"><i class="fas fa-paper-plane"></i></div><div class="stat-value text-purple">' + myLeaves.length + '</div><div class="stat-label">Total Applications</div></div>'
+                + '</div>';
+        } else {
+            var totalEmp = users.filter(function(u) { return u.role === 'employee'; }).length;
+            var pending = leaves.filter(function(l) { return l.status === 'pending'; }).length;
+            var approved = leaves.filter(function(l) { return l.status === 'approved'; }).length;
+            var rejected = leaves.filter(function(l) { return l.status === 'rejected'; }).length;
+
+            statsHtml = '<div class="stat-grid" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:16px; margin-bottom:28px;">'
+                + '<div class="stat-card fade-in stagger-1"><div class="stat-icon" style="background:rgba(0,229,200,0.12); color:var(--accent-cyan);"><i class="fas fa-users"></i></div><div class="stat-value text-cyan">' + totalEmp + '</div><div class="stat-label">Total Employees</div></div>'
+                + '<div class="stat-card fade-in stagger-2"><div class="stat-icon" style="background:rgba(245,158,11,0.12); color:var(--accent-orange);"><i class="fas fa-clock"></i></div><div class="stat-value text-orange">' + pending + '</div><div class="stat-label">Pending Requests</div>' + (pending ? '<div class="stat-change" style="background:rgba(245,158,11,0.1); color:var(--accent-orange);"><span class="pulse-dot"></span> Action Needed</div>' : '') + '</div>'
+                + '<div class="stat-card fade-in stagger-3"><div class="stat-icon" style="background:rgba(34,197,94,0.12); color:var(--accent-green);"><i class="fas fa-check-circle"></i></div><div class="stat-value text-green">' + approved + '</div><div class="stat-label">Approved</div></div>'
+                + '<div class="stat-card fade-in stagger-4"><div class="stat-icon" style="background:rgba(239,68,68,0.12); color:var(--accent-red);"><i class="fas fa-times-circle"></i></div><div class="stat-value text-red">' + rejected + '</div><div class="stat-label">Rejected</div></div>'
+                + '</div>';
+        }
+
+        var chartSection = '';
+        if (role !== 'employee') {
+            chartSection = '<div class="resp-grid-2" style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-bottom:28px;" class="fade-in">'
+                + '<div class="card"><div class="card-header"><h3 class="card-title">Leave Distribution</h3></div><div class="chart-container"><canvas id="dashChartType"></canvas></div></div>'
+                + '<div class="card"><div class="card-header"><h3 class="card-title">Status Overview</h3></div><div class="chart-container"><canvas id="dashChartStatus"></canvas></div></div>'
+                + '</div>';
+        } else {
+            var bal = CURRENT_USER.leaveBalance || { annual: 20, sick: 10, personal: 5, used: 0 };
+            var types = [
+                { label: 'Annual Leave', total: bal.annual, color: 'var(--accent-cyan)' },
+                { label: 'Sick Leave', total: bal.sick, color: 'var(--accent-pink)' },
+                { label: 'Personal Leave', total: bal.personal, color: 'var(--accent-purple)' }
+            ];
+            var balanceHtml = types.map(function(t) {
+                var used = Math.min(bal.used, t.total);
+                var remaining = t.total - used;
+                var pct = (remaining / t.total * 100).toFixed(0);
+                return '<div style="margin-bottom:18px;"><div style="display:flex; justify-content:space-between; margin-bottom:6px;"><span style="font-size:13px; color:var(--text-secondary);">' + t.label + '</span><span style="font-size:13px; font-weight:600;">' + remaining + '/' + t.total + '</span></div><div class="balance-bar-bg"><div class="balance-bar-fill" style="width:' + pct + '%; background:' + t.color + ';"></div></div></div>';
+            }).join('');
+            chartSection = '<div class="resp-grid-2" style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-bottom:28px;">'
+                + '<div class="card"><div class="card-header"><h3 class="card-title">Leave Balance</h3></div>' + balanceHtml
+                + '<div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border); display:flex; justify-content:space-between;"><span style="font-size:13px; color:var(--text-secondary);">Total Used</span><span style="font-size:14px; font-weight:700; color:var(--accent-orange);">' + bal.used + ' days</span></div></div>'
+                + '<div class="card"><div class="card-header"><h3 class="card-title">My Leave Types</h3></div><div class="chart-container"><canvas id="dashChartType"></canvas></div></div>'
+                + '</div>';
+        }
+
+        var recentLeaves;
+        if (role === 'employee') {
+            recentLeaves = leaves.filter(function(l) { return l.userId === CURRENT_USER.id; }).sort(function(a, b) { return b.id - a.id; }).slice(0, 5);
+        } else {
+            recentLeaves = leaves.slice().sort(function(a, b) { return b.id - a.id; }).slice(0, 6);
+        }
+
+        var tableRows = recentLeaves.map(function(l) {
+            var user = users.find(function(u) { return u.id === l.userId; });
+            var days = calcDays(l.startDate, l.endDate);
+            var userCol = role !== 'employee'
+                ? '<td><div style="display:flex; align-items:center; gap:10px;"><div style="width:32px; height:32px; border-radius:8px; background:linear-gradient(135deg,var(--accent-cyan),var(--accent-purple)); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#fff; flex-shrink:0;">' + getInitials(user ? user.fullName : 'NA') + '</div><span style="font-weight:500;">' + (user ? user.fullName.split(' ').slice(0, 2).join(' ') : 'Unknown') + '</span></div></td>'
+                : '';
+            return '<tr>' + userCol
+                + '<td><span class="badge ' + getLeaveBadgeClass(l.leaveType) + '">' + l.leaveType.charAt(0).toUpperCase() + l.leaveType.slice(1) + '</span></td>'
+                + '<td style="white-space:nowrap;">' + formatDate(l.startDate) + ' — ' + formatDate(l.endDate) + '</td>'
+                + '<td style="font-weight:600;">' + days + ' day' + (days > 1 ? 's' : '') + '</td>'
+                + '<td>' + getStatusBadge(l.status) + '</td></tr>';
+        }).join('');
+
+        var actionBtn = role === 'employee'
+            ? '<button class="btn btn-primary btn-sm" id="gotoApplyBtn"><i class="fas fa-plus"></i> New Request</button>'
+            : '<button class="btn btn-secondary btn-sm" id="gotoApprovalsBtn"><i class="fas fa-arrow-right"></i> View All</button>';
+
+        container.innerHTML = statsHtml + chartSection
+            + '<div class="card fade-in"><div class="card-header"><h3 class="card-title">Recent Leave Requests</h3>' + actionBtn + '</div>'
+            + '<div style="overflow-x:auto;"><table class="data-table"><thead><tr>'
+            + (role !== 'employee' ? '<th>Employee</th>' : '')
+            + '<th>Type</th><th>Duration</th><th>Days</th><th>Status</th></tr></thead>'
+            + '<tbody>' + tableRows + '</tbody></table></div>'
+            + (recentLeaves.length === 0 ? '<p style="text-align:center; color:var(--text-muted); padding:30px;">No leave requests found.</p>' : '')
+            + '</div>';
+
+        // Wire dynamic buttons
+        var gotoApply = document.getElementById('gotoApplyBtn');
+        if (gotoApply) gotoApply.addEventListener('click', function() { navigateTo('apply-leave'); });
+        var gotoAppr = document.getElementById('gotoApprovalsBtn');
+        if (gotoAppr) gotoAppr.addEventListener('click', function() { navigateTo('approvals'); });
+
+        setTimeout(function() { renderDashboardCharts(role); }, 60);
+    }
+
+    function renderDashboardCharts(role) {
+        var leaves = APP_DATA.leaves;
+        if (role !== 'employee') {
+            var typeCounts = { annual: 0, sick: 0, personal: 0 };
+            leaves.forEach(function(l) { if (typeCounts[l.leaveType] !== undefined) typeCounts[l.leaveType]++; });
+            var ctx1 = document.getElementById('dashChartType');
+            if (ctx1) {
+                window._dashChart1 = new Chart(ctx1, {
+                    type: 'doughnut',
+                    data: { labels: ['Annual', 'Sick', 'Personal'], datasets: [{ data: [typeCounts.annual, typeCounts.sick, typeCounts.personal], backgroundColor: ['rgba(0,229,200,0.8)', 'rgba(236,72,153,0.8)', 'rgba(168,85,247,0.8)'], borderColor: ['rgba(0,229,200,1)', 'rgba(236,72,153,1)', 'rgba(168,85,247,1)'], borderWidth: 2, hoverOffset: 8 }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#8892a8', padding: 16, usePointStyle: true, pointStyleWidth: 10, font: { family: 'Space Grotesk' } } } }, cutout: '65%' }
+                });
+            }
+            var statusCounts = { pending: 0, approved: 0, rejected: 0 };
+            leaves.forEach(function(l) { if (statusCounts[l.status] !== undefined) statusCounts[l.status]++; });
+            var ctx2 = document.getElementById('dashChartStatus');
+            if (ctx2) {
+                window._dashChart2 = new Chart(ctx2, {
+                    type: 'bar',
+                    data: { labels: ['Pending', 'Approved', 'Rejected'], datasets: [{ data: [statusCounts.pending, statusCounts.approved, statusCounts.rejected], backgroundColor: ['rgba(245,158,11,0.7)', 'rgba(34,197,94,0.7)', 'rgba(239,68,68,0.7)'], borderColor: ['rgba(245,158,11,1)', 'rgba(34,197,94,1)', 'rgba(239,68,68,1)'], borderWidth: 2, borderRadius: 8, barThickness: 48 }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { color: '#8892a8', font: { family: 'Space Grotesk' } } }, y: { grid: { color: 'rgba(42,53,80,0.5)' }, ticks: { color: '#8892a8', stepSize: 1, font: { family: 'Space Grotesk' } }, beginAtZero: true } } }
+                });
+            }
+        } else {
+            var myLeaves = leaves.filter(function(l) { return l.userId === CURRENT_USER.id; });
+            var tc = { annual: 0, sick: 0, personal: 0 };
+            myLeaves.forEach(function(l) { if (tc[l.leaveType] !== undefined) tc[l.leaveType]++; });
+            var c = document.getElementById('dashChartType');
+            if (c) {
+                window._dashChart1 = new Chart(c, {
+                    type: 'doughnut',
+                    data: { labels: ['Annual', 'Sick', 'Personal'], datasets: [{ data: [tc.annual || 0, tc.sick || 0, tc.personal || 0], backgroundColor: ['rgba(0,229,200,0.8)', 'rgba(236,72,153,0.8)', 'rgba(168,85,247,0.8)'], borderColor: ['rgba(0,229,200,1)', 'rgba(236,72,153,1)', 'rgba(168,85,247,1)'], borderWidth: 2, hoverOffset: 8 }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#8892a8', padding: 16, usePointStyle: true, pointStyleWidth: 10, font: { family: 'Space Grotesk' } } } }, cutout: '65%' }
+                });
+            }
+        }
+    }
+
+    // ========================================================
+    // PAGE: APPLY LEAVE
+    // ========================================================
+    function renderApplyLeave() {
+        var bal = CURRENT_USER.leaveBalance || { annual: 20, sick: 10, personal: 5, used: 0 };
+        var container = document.getElementById('pageContent');
+        container.innerHTML = '<div style="display:grid; grid-template-columns: 1fr 360px; gap:24px;" class="fade-in resp-grid-2">'
+            + '<div class="card"><div class="card-header"><h3 class="card-title">New Leave Request</h3></div>'
+            + '<form id="leaveForm">'
+            + '<div style="display:grid; grid-template-columns: 1fr 1fr; gap:18px; margin-bottom:18px;">'
+            + '<div><label class="form-label">Leave Type</label><select class="form-input" id="leaveType" required><option value="">Select type...</option><option value="annual">Annual Leave</option><option value="sick">Sick Leave</option><option value="personal">Personal Leave</option></select></div>'
+            + '<div><label class="form-label">Duration</label><div style="display:flex; gap:10px;"><input type="date" class="form-input" id="leaveStart" required style="flex:1;"><input type="date" class="form-input" id="leaveEnd" required style="flex:1;"></div></div>'
+            + '</div>'
+            + '<div style="margin-bottom:18px;"><label class="form-label">Reason</label><textarea class="form-input" id="leaveReason" placeholder="Explain why you need this leave..." required></textarea></div>'
+            + '<div id="daysIndicator" style="margin-bottom:18px; display:none; padding:12px 16px; background:rgba(0,229,200,0.08); border:1px solid rgba(0,229,200,0.2); border-radius:10px; font-size:14px; color:var(--accent-cyan); font-weight:600;"></div>'
+            + '<div style="display:flex; gap:12px;"><button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Submit Request</button><button type="reset" class="btn btn-secondary" id="leaveResetBtn"><i class="fas fa-undo"></i> Reset</button></div>'
+            + '</form></div>'
+            + '<div>'
+            + '<div class="card" style="margin-bottom:16px;"><div class="card-header"><h3 class="card-title">Leave Balance</h3></div>'
+            + '<div style="display:flex; flex-direction:column; gap:14px;">'
+            + '<div style="display:flex; align-items:center; justify-content:space-between; padding:12px; background:var(--bg-primary); border-radius:10px;"><div style="display:flex; align-items:center; gap:10px;"><div style="width:8px; height:8px; border-radius:50%; background:var(--accent-cyan);"></div><span style="font-size:13px;">Annual Leave</span></div><span style="font-size:15px; font-weight:700; color:var(--accent-cyan);">' + bal.annual + '</span></div>'
+            + '<div style="display:flex; align-items:center; justify-content:space-between; padding:12px; background:var(--bg-primary); border-radius:10px;"><div style="display:flex; align-items:center; gap:10px;"><div style="width:8px; height:8px; border-radius:50%; background:var(--accent-pink);"></div><span style="font-size:13px;">Sick Leave</span></div><span style="font-size:15px; font-weight:700; color:var(--accent-pink);">' + bal.sick + '</span></div>'
+            + '<div style="display:flex; align-items:center; justify-content:space-between; padding:12px; background:var(--bg-primary); border-radius:10px;"><div style="display:flex; align-items:center; gap:10px;"><div style="width:8px; height:8px; border-radius:50%; background:var(--accent-purple);"></div><span style="font-size:13px;">Personal Leave</span></div><span style="font-size:15px; font-weight:700; color:var(--accent-purple);">' + bal.personal + '</span></div>'
+            + '</div>'
+            + '<div style="margin-top:14px; padding-top:14px; border-top:1px solid var(--border); text-align:center;"><span style="font-size:12px; color:var(--text-muted);">Total days used: </span><span style="font-size:14px; font-weight:700; color:var(--accent-orange);">' + bal.used + '</span></div>'
+            + '</div>'
+            + '<div class="card"><div class="card-header"><h3 class="card-title">Tips</h3></div>'
+            + '<ul style="font-size:13px; color:var(--text-secondary); line-height:1.8; padding-left:16px;"><li>Submit requests at least 2 days in advance</li><li>Sick leaves can be submitted retroactively</li><li>Include clear reasons for faster approval</li><li>Check your balance before applying</li></ul></div>'
+            + '</div></div>';
+
+        document.getElementById('leaveStart').addEventListener('change', updateDaysCount);
+        document.getElementById('leaveEnd').addEventListener('change', updateDaysCount);
+        document.getElementById('leaveResetBtn').addEventListener('click', function() {
+            document.getElementById('daysIndicator').style.display = 'none';
+        });
+        document.getElementById('leaveForm').addEventListener('submit', submitLeave);
+    }
+
+    function updateDaysCount() {
+        var start = document.getElementById('leaveStart').value;
+        var end = document.getElementById('leaveEnd').value;
+        var indicator = document.getElementById('daysIndicator');
+        if (start && end) {
+            var days = calcDays(start, end);
+            if (new Date(end) < new Date(start)) {
+                indicator.style.display = 'block';
+                indicator.style.background = 'rgba(239,68,68,0.08)';
+                indicator.style.borderColor = 'rgba(239,68,68,0.2)';
+                indicator.style.color = 'var(--accent-red)';
+                indicator.innerHTML = '<i class="fas fa-exclamation-triangle"></i> End date must be after start date';
+            } else {
+                indicator.style.display = 'block';
+                indicator.style.background = 'rgba(0,229,200,0.08)';
+                indicator.style.borderColor = 'rgba(0,229,200,0.2)';
+                indicator.style.color = 'var(--accent-cyan)';
+                indicator.innerHTML = '<i class="fas fa-calendar-day"></i> Total: ' + days + ' day' + (days > 1 ? 's' : '') + ' leave';
+            }
+        } else { indicator.style.display = 'none'; }
+    }
+
+    function submitLeave(e) {
+        e.preventDefault();
+        var type = document.getElementById('leaveType').value;
+        var start = document.getElementById('leaveStart').value;
+        var end = document.getElementById('leaveEnd').value;
+        var reason = document.getElementById('leaveReason').value.trim();
+        if (!type || !start || !end || !reason) { showToast('Please fill in all fields', 'error'); return; }
+        if (new Date(end) < new Date(start)) { showToast('End date cannot be before start date', 'error'); return; }
+        var days = calcDays(start, end);
+        var bal = CURRENT_USER.leaveBalance || { annual: 20, sick: 10, personal: 5, used: 0 };
+        if (bal[type] < days) { showToast('Insufficient ' + type + ' leave balance. You have ' + bal[type] + ' days.', 'error'); return; }
+        var maxId = APP_DATA.leaves.reduce(function(mx, l) { return Math.max(mx, l.id); }, 0);
+        APP_DATA.leaves.push({
+            id: maxId + 1, userId: CURRENT_USER.id, leaveType: type,
+            startDate: start, endDate: end, reason: reason, status: 'pending',
+            createdAt: new Date().toISOString().split('T')[0]
+        });
+        var userIdx = APP_DATA.users.findIndex(function(u) { return u.id === CURRENT_USER.id; });
+        if (userIdx !== -1) {
+            CURRENT_USER.leaveBalance = APP_DATA.users[userIdx].leaveBalance;
+        }
+        saveData(APP_DATA);
+        buildSidebarNav();
+        showToast('Leave request submitted (' + days + ' day' + (days > 1 ? 's' : '') + ')', 'success');
+        navigateTo('leave-history');
+    }
+
+    // ========================================================
+    // PAGE: APPROVALS
+    // ========================================================
+    function renderApprovals() {
+        var container = document.getElementById('pageContent');
+        container.innerHTML = '<div class="fade-in">'
+            + '<div class="card" style="margin-bottom:20px;"><div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">'
+            + '<div class="search-box"><i class="fas fa-search"></i><input type="text" class="form-input" id="approvalSearch" placeholder="Search by name..."></div>'
+            + '<select class="form-input" id="approvalStatusFilter" style="width:160px;"><option value="all">All Statuses</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select>'
+            + '<select class="form-input" id="approvalTypeFilter" style="width:160px;"><option value="all">All Types</option><option value="annual">Annual</option><option value="sick">Sick</option><option value="personal">Personal</option></select>'
+            + '</div></div>'
+            + '<div class="card"><div class="card-header"><h3 class="card-title">All Leave Requests</h3><span style="font-size:13px; color:var(--text-muted);" id="approvalCount"></span></div>'
+            + '<div style="overflow-x:auto;" id="approvalsTableContainer"></div></div></div>';
+
+        document.getElementById('approvalSearch').addEventListener('input', filterApprovals);
+        document.getElementById('approvalStatusFilter').addEventListener('change', filterApprovals);
+        document.getElementById('approvalTypeFilter').addEventListener('change', filterApprovals);
+        filterApprovals();
+    }
+
+    function filterApprovals() {
+        var searchEl = document.getElementById('approvalSearch');
+        var statusEl = document.getElementById('approvalStatusFilter');
+        var typeEl = document.getElementById('approvalTypeFilter');
+        var search = searchEl ? searchEl.value.toLowerCase() : '';
+        var statusFilter = statusEl ? statusEl.value : 'all';
+        var typeFilter = typeEl ? typeEl.value : 'all';
+
+        var filtered = APP_DATA.leaves.slice().sort(function(a, b) { return b.id - a.id; });
+        if (search) filtered = filtered.filter(function(l) { var u = APP_DATA.users.find(function(u2) { return u2.id === l.userId; }); return u && u.fullName.toLowerCase().indexOf(search) !== -1; });
+        if (statusFilter !== 'all') filtered = filtered.filter(function(l) { return l.status === statusFilter; });
+        if (typeFilter !== 'all') filtered = filtered.filter(function(l) { return l.leaveType === typeFilter; });
+
+        var countEl = document.getElementById('approvalCount');
+        if (countEl) countEl.textContent = filtered.length + ' request' + (filtered.length !== 1 ? 's' : '');
+
+        var container = document.getElementById('approvalsTableContainer');
+        if (!container) return;
+        if (filtered.length === 0) { container.innerHTML = '<p style="text-align:center; color:var(--text-muted); padding:40px;">No matching leave requests found.</p>'; return; }
+
+        var rows = filtered.map(function(l) {
+            var user = APP_DATA.users.find(function(u) { return u.id === l.userId; });
+            var days = calcDays(l.startDate, l.endDate);
+            var actions = l.status === 'pending'
+                ? '<div style="display:flex; gap:6px;"><button class="btn btn-success btn-sm appr-approve" data-id="' + l.id + '" title="Approve"><i class="fas fa-check"></i></button><button class="btn btn-danger btn-sm appr-reject" data-id="' + l.id + '" title="Reject"><i class="fas fa-times"></i></button></div>'
+                : '<span style="font-size:12px; color:var(--text-muted);">—</span>';
+            return '<tr>'
+                + '<td><div style="display:flex; align-items:center; gap:10px;"><div style="width:34px; height:34px; border-radius:8px; background:linear-gradient(135deg,var(--accent-cyan),var(--accent-purple)); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#fff; flex-shrink:0;">' + getInitials(user ? user.fullName : 'NA') + '</div><div><div style="font-weight:500; font-size:14px;">' + (user ? user.fullName : 'Unknown') + '</div><div style="font-size:11px; color:var(--text-muted);">' + (user ? user.department : '') + '</div></div></div></td>'
+                + '<td><span class="badge ' + getLeaveBadgeClass(l.leaveType) + '">' + l.leaveType.charAt(0).toUpperCase() + l.leaveType.slice(1) + '</span></td>'
+                + '<td style="white-space:nowrap; font-size:13px;">' + formatDate(l.startDate) + ' — ' + formatDate(l.endDate) + '</td>'
+                + '<td style="font-weight:600;">' + days + 'd</td>'
+                + '<td style="max-width:200px; font-size:13px; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="' + l.reason + '">' + l.reason + '</td>'
+                + '<td>' + getStatusBadge(l.status) + '</td>'
+                + '<td>' + actions + '</td></tr>';
+        }).join('');
+
+        container.innerHTML = '<table class="data-table"><thead><tr><th>Employee</th><th>Type</th><th>Duration</th><th>Days</th><th>Reason</th><th>Status</th><th>Actions</th></tr></thead><tbody>' + rows + '</tbody></table>';
+
+        container.querySelectorAll('.appr-approve').forEach(function(btn) {
+            btn.addEventListener('click', function() { approveLeave(parseInt(this.getAttribute('data-id'))); });
+        });
+        container.querySelectorAll('.appr-reject').forEach(function(btn) {
+            btn.addEventListener('click', function() { rejectLeave(parseInt(this.getAttribute('data-id'))); });
+        });
+    }
+
+    function approveLeave(id) {
+        var idx = APP_DATA.leaves.findIndex(function(l) { return l.id === id; });
+        if (idx === -1) return;
+        APP_DATA.leaves[idx].status = 'approved';
+        var l = APP_DATA.leaves[idx];
+        var days = calcDays(l.startDate, l.endDate);
+        var userIdx = APP_DATA.users.findIndex(function(u) { return u.id === l.userId; });
+        if (userIdx !== -1 && APP_DATA.users[userIdx].leaveBalance) {
+            APP_DATA.users[userIdx].leaveBalance.used += days;
+            if (APP_DATA.users[userIdx].leaveBalance[l.leaveType] !== undefined) {
+                APP_DATA.users[userIdx].leaveBalance[l.leaveType] = Math.max(0, APP_DATA.users[userIdx].leaveBalance[l.leaveType] - days);
+            }
+        }
+        saveData(APP_DATA); buildSidebarNav();
+        showToast('Leave request approved', 'success'); filterApprovals();
+    }
+
+    function rejectLeave(id) {
+        var idx = APP_DATA.leaves.findIndex(function(l) { return l.id === id; });
+        if (idx === -1) return;
+        APP_DATA.leaves[idx].status = 'rejected';
+        saveData(APP_DATA); buildSidebarNav();
+        showToast('Leave request rejected', 'error'); filterApprovals();
+    }
+
+    // ========================================================
+    // PAGE: LEAVE HISTORY
+    // ========================================================
+    function renderLeaveHistory() {
+        var container = document.getElementById('pageContent');
+        container.innerHTML = '<div class="fade-in">'
+            + '<div class="card" style="margin-bottom:20px;"><div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">'
+            + '<select class="form-input" id="historyStatusFilter" style="width:160px;"><option value="all">All Statuses</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select>'
+            + '<select class="form-input" id="historyTypeFilter" style="width:160px;"><option value="all">All Types</option><option value="annual">Annual</option><option value="sick">Sick</option><option value="personal">Personal</option></select>'
+            + '</div></div>'
+            + '<div class="card"><div class="card-header"><h3 class="card-title">My Leave History</h3><span style="font-size:13px; color:var(--text-muted);" id="historyCount"></span></div>'
+            + '<div style="overflow-x:auto;" id="historyTableContainer"></div></div></div>';
+
+        document.getElementById('historyStatusFilter').addEventListener('change', filterHistory);
+        document.getElementById('historyTypeFilter').addEventListener('change', filterHistory);
+        filterHistory();
+    }
+
+    function filterHistory() {
+        var statusFilter = document.getElementById('historyStatusFilter').value;
+        var typeFilter = document.getElementById('historyTypeFilter').value;
+        var filtered = APP_DATA.leaves.filter(function(l) { return l.userId === CURRENT_USER.id; }).sort(function(a, b) { return b.id - a.id; });
+        if (statusFilter !== 'all') filtered = filtered.filter(function(l) { return l.status === statusFilter; });
+        if (typeFilter !== 'all') filtered = filtered.filter(function(l) { return l.leaveType === typeFilter; });
+        var countEl = document.getElementById('historyCount');
+        if (countEl) countEl.textContent = filtered.length + ' record' + (filtered.length !== 1 ? 's' : '');
+        var container = document.getElementById('historyTableContainer');
+        if (!container) return;
+        if (filtered.length === 0) { container.innerHTML = '<p style="text-align:center; color:var(--text-muted); padding:40px;">No leave records found.</p>'; return; }
+        var rows = filtered.map(function(l) {
+            var days = calcDays(l.startDate, l.endDate);
+            return '<tr>'
+                + '<td><span class="badge ' + getLeaveBadgeClass(l.leaveType) + '">' + l.leaveType.charAt(0).toUpperCase() + l.leaveType.slice(1) + '</span></td>'
+                + '<td style="white-space:nowrap;">' + formatDate(l.startDate) + ' — ' + formatDate(l.endDate) + '</td>'
+                + '<td style="font-weight:600;">' + days + ' day' + (days > 1 ? 's' : '') + '</td>'
+                + '<td style="max-width:250px; color:var(--text-secondary); font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="' + l.reason + '">' + l.reason + '</td>'
+                + '<td>' + getStatusBadge(l.status) + '</td>'
+                + '<td style="font-size:12px; color:var(--text-muted);">' + formatDate(l.createdAt) + '</td></tr>';
+        }).join('');
+        container.innerHTML = '<table class="data-table"><thead><tr><th>Type</th><th>Duration</th><th>Days</th><th>Reason</th><th>Status</th><th>Applied On</th></tr></thead><tbody>' + rows + '</tbody></table>';
+    }
+
+    // ========================================================
+    // PAGE: CALENDAR
+    // ========================================================
+    var calYear, calMonth;
+    function renderCalendar() {
+        var now = new Date();
+        if (!calYear) { calYear = now.getFullYear(); calMonth = now.getMonth(); }
+        var container = document.getElementById('pageContent');
+        container.innerHTML = '<div class="fade-in"><div class="card">'
+            + '<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px;">'
+            + '<button class="btn btn-secondary btn-sm" id="calPrevBtn"><i class="fas fa-chevron-left"></i></button>'
+            + '<h2 style="font-size:20px; font-weight:700;" id="calMonthTitle"></h2>'
+            + '<button class="btn btn-secondary btn-sm" id="calNextBtn"><i class="fas fa-chevron-right"></i></button>'
+            + '</div><div class="cal-grid" id="calGrid"></div>'
+            + '<div style="margin-top:24px; padding-top:20px; border-top:1px solid var(--border);"><h4 style="font-size:14px; font-weight:600; margin-bottom:14px;">Leaves This Month</h4><div id="calLeaveList" style="display:flex; flex-direction:column; gap:8px;"></div></div>'
+            + '</div></div>';
+
+        document.getElementById('calPrevBtn').addEventListener('click', function() { calNav(-1); });
+        document.getElementById('calNextBtn').addEventListener('click', function() { calNav(1); });
+        renderCalGrid();
+    }
+
+    function calNav(dir) {
+        calMonth += dir;
+        if (calMonth > 11) { calMonth = 0; calYear++; }
+        if (calMonth < 0) { calMonth = 11; calYear--; }
+        renderCalGrid();
+    }
+
+    function renderCalGrid() {
+        var monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+        document.getElementById('calMonthTitle').textContent = monthNames[calMonth] + ' ' + calYear;
+        var dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+        var html = dayNames.map(function(d) { return '<div class="cal-header-cell">' + d + '</div>'; }).join('');
+        var firstDay = new Date(calYear, calMonth, 1).getDay();
+        var daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+        var daysInPrev = new Date(calYear, calMonth, 0).getDate();
+        var today = new Date();
+        var leaveDates = {};
+        APP_DATA.leaves.forEach(function(l) {
+            if (l.status !== 'approved') return;
+            var s = new Date(l.startDate), e = new Date(l.endDate);
+            var user = APP_DATA.users.find(function(u) { return u.id === l.userId; });
+            var cur = new Date(s);
+            while (cur <= e) {
+                if (cur.getMonth() === calMonth && cur.getFullYear() === calYear) {
+                    var key = cur.getDate();
+                    if (!leaveDates[key]) leaveDates[key] = [];
+                    leaveDates[key].push({ user: user ? user.fullName : 'Unknown', type: l.leaveType });
+                }
+                cur.setDate(cur.getDate() + 1);
+            }
+        });
+        for (var i = firstDay - 1; i >= 0; i--) html += '<div class="cal-cell other-month">' + (daysInPrev - i) + '</div>';
+        for (var d = 1; d <= daysInMonth; d++) {
+            var isToday = d === today.getDate() && calMonth === today.getMonth() && calYear === today.getFullYear();
+            var hasLeave = !!leaveDates[d];
+            var cls = 'cal-cell' + (isToday ? ' today' : '') + (hasLeave ? ' has-leave' : '');
+            html += '<div class="' + cls + '">' + d + '</div>';
+        }
+        var totalCells = firstDay + daysInMonth;
+        var remaining = (7 - (totalCells % 7)) % 7;
+        for (var i = 1; i <= remaining; i++) html += '<div class="cal-cell other-month">' + i + '</div>';
+        document.getElementById('calGrid').innerHTML = html;
+
+        var listContainer = document.getElementById('calLeaveList');
+        var allEntries = [];
+        Object.keys(leaveDates).forEach(function(day) {
+            leaveDates[day].forEach(function(entry) { allEntries.push({ day: parseInt(day), user: entry.user, type: entry.type }); });
+        });
+        if (allEntries.length === 0) {
+            listContainer.innerHTML = '<p style="font-size:13px; color:var(--text-muted);">No approved leaves this month.</p>';
+        } else {
+            listContainer.innerHTML = allEntries.slice(0, 8).map(function(ml) {
+                return '<div style="display:flex; align-items:center; gap:12px; padding:10px 14px; background:var(--bg-primary); border-radius:10px;">'
+                    + '<div style="width:36px; height:36px; border-radius:8px; background:rgba(168,85,247,0.15); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:var(--accent-purple);">' + ml.day + '</div>'
+                    + '<div style="flex:1;"><div style="font-size:13px; font-weight:500;">' + ml.user + '</div><span class="badge ' + getLeaveBadgeClass(ml.type) + '" style="font-size:11px;">' + ml.type + '</span></div></div>';
+            }).join('');
+        }
+    }
+
+    // ========================================================
+    // PAGE: REPORTS
+    // ========================================================
+    function renderReports() {
+        var container = document.getElementById('pageContent');
+        var leaves = APP_DATA.leaves;
+        var users = APP_DATA.users;
+        var employees = users.filter(function(u) { return u.role === 'employee'; });
+        var totalDays = leaves.filter(function(l) { return l.status === 'approved'; }).reduce(function(sum, l) { return sum + calcDays(l.startDate, l.endDate); }, 0);
+        var avgPerEmp = employees.length > 0 ? (totalDays / employees.length).toFixed(1) : 0;
+        var approvalRate = leaves.length > 0 ? ((leaves.filter(function(l) { return l.status === 'approved'; }).length / leaves.length) * 100).toFixed(0) : 0;
+
+        var months = [], monthData = { approved: [], rejected: [], pending: [] };
+        for (var i = 5; i >= 0; i--) {
+            var d = new Date(); d.setMonth(d.getMonth() - i);
+            var m = d.getMonth(), y = d.getFullYear();
+            months.push(d.toLocaleDateString('en-US', { month: 'short' }));
+            monthData.approved.push(leaves.filter(function(l) { var ld = new Date(l.createdAt); return ld.getMonth() === m && ld.getFullYear() === y && l.status === 'approved'; }).length);
+            monthData.rejected.push(leaves.filter(function(l) { var ld = new Date(l.createdAt); return ld.getMonth() === m && ld.getFullYear() === y && l.status === 'rejected'; }).length);
+            monthData.pending.push(leaves.filter(function(l) { var ld = new Date(l.createdAt); return ld.getMonth() === m && ld.getFullYear() === y && l.status === 'pending'; }).length);
+        }
+
+        var depts = {};
+        employees.forEach(function(emp) {
+            if (!depts[emp.department]) depts[emp.department] = { total: 0, approved: 0 };
+            leaves.filter(function(l) { return l.userId === emp.id; }).forEach(function(l) { depts[emp.department].total++; if (l.status === 'approved') depts[emp.department].approved++; });
+        });
+        var deptLabels = Object.keys(depts);
+        var deptTotal = deptLabels.map(function(d) { return depts[d].total; });
+        var deptApproved = deptLabels.map(function(d) { return depts[d].approved; });
+
+        var empRows = employees.map(function(emp) {
+            var el = leaves.filter(function(l) { return l.userId === emp.id; });
+            var ap = el.filter(function(l) { return l.status === 'approved'; });
+            var pe = el.filter(function(l) { return l.status === 'pending'; });
+            var re = el.filter(function(l) { return l.status === 'rejected'; });
+            var days = ap.reduce(function(s, l) { return s + calcDays(l.startDate, l.endDate); }, 0);
+            return '<tr><td><div style="display:flex; align-items:center; gap:10px;"><div style="width:32px; height:32px; border-radius:8px; background:linear-gradient(135deg,var(--accent-cyan),var(--accent-purple)); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#fff; flex-shrink:0;">' + getInitials(emp.fullName) + '</div><span style="font-weight:500;">' + emp.fullName + '</span></div></td>'
+                + '<td style="color:var(--text-secondary); font-size:13px;">' + emp.department + '</td>'
+                + '<td style="font-weight:600;">' + el.length + '</td><td class="text-green">' + ap.length + '</td><td class="text-orange">' + pe.length + '</td><td class="text-red">' + re.length + '</td><td style="font-weight:700;">' + days + '</td></tr>';
+        }).join('');
+
+        container.innerHTML = '<div class="fade-in">'
+            + '<div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:16px; margin-bottom:24px;">'
+            + '<div class="stat-card"><div class="stat-icon" style="background:rgba(34,197,94,0.12); color:var(--accent-green);"><i class="fas fa-calendar-check"></i></div><div class="stat-value text-green">' + totalDays + '</div><div class="stat-label">Total Approved Days</div></div>'
+            + '<div class="stat-card"><div class="stat-icon" style="background:rgba(0,229,200,0.12); color:var(--accent-cyan);"><i class="fas fa-user-clock"></i></div><div class="stat-value text-cyan">' + avgPerEmp + '</div><div class="stat-label">Avg Days per Employee</div></div>'
+            + '<div class="stat-card"><div class="stat-icon" style="background:rgba(168,85,247,0.12); color:var(--accent-purple);"><i class="fas fa-percentage"></i></div><div class="stat-value text-purple">' + approvalRate + '%</div><div class="stat-label">Approval Rate</div></div>'
+            + '</div>'
+            + '<div class="resp-grid-2" style="display:grid; grid-template-columns: 1.5fr 1fr; gap:20px; margin-bottom:24px;">'
+            + '<div class="card"><div class="card-header"><h3 class="card-title">Monthly Trends (Last 6 Months)</h3></div><div class="chart-container"><canvas id="reportChartMonthly"></canvas></div></div>'
+            + '<div class="card"><div class="card-header"><h3 class="card-title">Leave by Department</h3></div><div class="chart-container"><canvas id="reportChartDept"></canvas></div></div>'
+            + '</div>'
+            + '<div class="card"><div class="card-header"><h3 class="card-title">Employee Leave Summary</h3></div>'
+            + '<div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>Employee</th><th>Department</th><th>Total Requests</th><th>Approved</th><th>Pending</th><th>Rejected</th><th>Total Days</th></tr></thead><tbody>' + empRows + '</tbody></table></div></div></div>';
+
+        setTimeout(function() {
+            var ctx1 = document.getElementById('reportChartMonthly');
+            if (ctx1) {
+                window._reportChart1 = new Chart(ctx1, {
+                    type: 'line',
+                    data: { labels: months, datasets: [
+                        { label: 'Approved', data: monthData.approved, borderColor: 'rgba(34,197,94,1)', backgroundColor: 'rgba(34,197,94,0.1)', fill: true, tension: 0.4, pointRadius: 5, pointBackgroundColor: 'rgba(34,197,94,1)' },
+                        { label: 'Rejected', data: monthData.rejected, borderColor: 'rgba(239,68,68,1)', backgroundColor: 'rgba(239,68,68,0.1)', fill: true, tension: 0.4, pointRadius: 5, pointBackgroundColor: 'rgba(239,68,68,1)' },
+                        { label: 'Pending', data: monthData.pending, borderColor: 'rgba(245,158,11,1)', backgroundColor: 'rgba(245,158,11,0.1)', fill: true, tension: 0.4, pointRadius: 5, pointBackgroundColor: 'rgba(245,158,11,1)' }
+                    ] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#8892a8', padding: 16, usePointStyle: true, font: { family: 'Space Grotesk' } } } }, scales: { x: { grid: { color: 'rgba(42,53,80,0.5)' }, ticks: { color: '#8892a8', font: { family: 'Space Grotesk' } } }, y: { grid: { color: 'rgba(42,53,80,0.5)' }, ticks: { color: '#8892a8', stepSize: 1, font: { family: 'Space Grotesk' } }, beginAtZero: true } } }
+                });
+            }
+            var ctx2 = document.getElementById('reportChartDept');
+            if (ctx2) {
+                window._reportChart2 = new Chart(ctx2, {
+                    type: 'bar',
+                    data: { labels: deptLabels, datasets: [
+                        { label: 'Total', data: deptTotal, backgroundColor: 'rgba(168,85,247,0.6)', borderColor: 'rgba(168,85,247,1)', borderWidth: 2, borderRadius: 6, barThickness: 28 },
+                        { label: 'Approved', data: deptApproved, backgroundColor: 'rgba(0,229,200,0.6)', borderColor: 'rgba(0,229,200,1)', borderWidth: 2, borderRadius: 6, barThickness: 28 }
+                    ] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#8892a8', padding: 16, usePointStyle: true, font: { family: 'Space Grotesk' } } } }, scales: { x: { grid: { display: false }, ticks: { color: '#8892a8', font: { family: 'Space Grotesk', size: 11 } } }, y: { grid: { color: 'rgba(42,53,80,0.5)' }, ticks: { color: '#8892a8', stepSize: 1, font: { family: 'Space Grotesk' } }, beginAtZero: true } } }
+                });
+            }
+        }, 60);
+    }
+
+    // ========================================================
+    // PAGE: PROFILE
+    // ========================================================
+    function renderProfile() {
+        var container = document.getElementById('pageContent');
+        var u = CURRENT_USER;
+        var roleLabels = { super_admin: 'Super Admin', admin: 'HR Admin', employee: 'Employee' };
+        var myLeaves = APP_DATA.leaves.filter(function(l) { return l.userId === u.id; });
+        container.innerHTML = '<div class="fade-in"><div style="display:grid; grid-template-columns: 1fr 1fr; gap:24px;" class="resp-grid-2">'
+            + '<div class="card"><div style="text-align:center; margin-bottom:28px;">'
+            + '<div class="profile-avatar-lg" style="margin:0 auto 16px;">' + getInitials(u.fullName) + '</div>'
+            + '<h2 style="font-size:22px; font-weight:700; margin-bottom:4px;">' + u.fullName + '</h2>'
+            + '<span class="badge" style="background:rgba(0,229,200,0.15); color:var(--accent-cyan);">' + roleLabels[u.role] + '</span></div>'
+            + '<div>'
+            + '<div class="info-row"><span class="info-label"><i class="fas fa-user"></i> Username</span><span class="info-value">' + u.username + '</span></div>'
+            + '<div class="info-row"><span class="info-label"><i class="fas fa-envelope"></i> Email</span><span class="info-value">' + (u.email || 'Not set') + '</span></div>'
+            + '<div class="info-row"><span class="info-label"><i class="fas fa-building"></i> Department</span><span class="info-value">' + (u.department || 'Not set') + '</span></div>'
+            + '<div class="info-row"><span class="info-label"><i class="fas fa-calendar"></i> Join Date</span><span class="info-value">' + formatDate(u.joinDate) + '</span></div>'
+            + '</div></div>'
+            + '<div>'
+            + '<div class="card" style="margin-bottom:16px;"><div class="card-header"><h3 class="card-title">Leave Statistics</h3></div>'
+            + '<div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:14px;">'
+            + '<div style="padding:16px; background:var(--bg-primary); border-radius:12px; text-align:center;"><div style="font-size:26px; font-weight:700; color:var(--accent-cyan);">' + myLeaves.length + '</div><div style="font-size:12px; color:var(--text-muted); margin-top:4px;">Total Requests</div></div>'
+            + '<div style="padding:16px; background:var(--bg-primary); border-radius:12px; text-align:center;"><div style="font-size:26px; font-weight:700; color:var(--accent-green);">' + myLeaves.filter(function(l) { return l.status === 'approved'; }).length + '</div><div style="font-size:12px; color:var(--text-muted); margin-top:4px;">Approved</div></div>'
+            + '<div style="padding:16px; background:var(--bg-primary); border-radius:12px; text-align:center;"><div style="font-size:26px; font-weight:700; color:var(--accent-orange);">' + myLeaves.filter(function(l) { return l.status === 'pending'; }).length + '</div><div style="font-size:12px; color:var(--text-muted); margin-top:4px;">Pending</div></div>'
+            + '<div style="padding:16px; background:var(--bg-primary); border-radius:12px; text-align:center;"><div style="font-size:26px; font-weight:700; color:var(--accent-red);">' + myLeaves.filter(function(l) { return l.status === 'rejected'; }).length + '</div><div style="font-size:12px; color:var(--text-muted); margin-top:4px;">Rejected</div></div>'
+            + '</div></div>'
+            + '<div class="card"><div class="card-header"><h3 class="card-title">Change Password</h3></div>'
+            + '<form id="pwdChangeForm">'
+            + '<div style="margin-bottom:14px;"><label class="form-label">Current Password</label><input type="password" class="form-input" id="currentPwd" required></div>'
+            + '<div style="margin-bottom:14px;"><label class="form-label">New Password</label><input type="password" class="form-input" id="newPwd" required minlength="4"></div>'
+            + '<div style="margin-bottom:18px;"><label class="form-label">Confirm New Password</label><input type="password" class="form-input" id="confirmPwd" required minlength="4"></div>'
+            + '<button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-key"></i> Update Password</button>'
+            + '</form></div></div></div></div>';
+
+        document.getElementById('pwdChangeForm').addEventListener('submit', changePassword);
+    }
+
+    function changePassword(e) {
+        e.preventDefault();
+        var current = document.getElementById('currentPwd').value;
+        var newPwd = document.getElementById('newPwd').value;
+        var confirm = document.getElementById('confirmPwd').value;
+        if (current !== CURRENT_USER.password) { showToast('Current password is incorrect', 'error'); return; }
+        if (newPwd.length < 4) { showToast('New password must be at least 4 characters', 'error'); return; }
+        if (newPwd !== confirm) { showToast('New passwords do not match', 'error'); return; }
+        var idx = APP_DATA.users.findIndex(function(u) { return u.id === CURRENT_USER.id; });
+        if (idx !== -1) {
+            APP_DATA.users[idx].password = newPwd;
+            CURRENT_USER.password = newPwd;
+            saveData(APP_DATA);
+            showToast('Password updated successfully', 'success');
+            e.target.reset();
+        }
+    }
+
+    // ========================================================
+    // PAGE: USER MANAGEMENT (Super Admin)
+    // ========================================================
+    function renderUserManagement() {
+        var container = document.getElementById('pageContent');
+        container.innerHTML = '<div class="fade-in">'
+            + '<div class="card" style="margin-bottom:20px;"><div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">'
+            + '<div class="search-box"><i class="fas fa-search"></i><input type="text" class="form-input" id="userSearch" placeholder="Search users..."></div>'
+            + '<button class="btn btn-primary" id="addUserBtn"><i class="fas fa-user-plus"></i> Add User</button>'
+            + '</div></div>'
+            + '<div class="card"><div class="card-header"><h3 class="card-title">All Users</h3><span style="font-size:13px; color:var(--text-muted);" id="userCount"></span></div>'
+            + '<div style="overflow-x:auto;" id="userTableContainer"></div></div></div>';
+
+        document.getElementById('userSearch').addEventListener('input', filterUsers);
+        document.getElementById('addUserBtn').addEventListener('click', openAddUserModal);
+        filterUsers();
+    }
+
+    function filterUsers() {
+        var searchEl = document.getElementById('userSearch');
+        var search = searchEl ? searchEl.value.toLowerCase() : '';
+        var filtered = APP_DATA.users.slice();
+        if (search) filtered = filtered.filter(function(u) { return u.fullName.toLowerCase().indexOf(search) !== -1 || u.username.toLowerCase().indexOf(search) !== -1; });
+        var countEl = document.getElementById('userCount');
+        if (countEl) countEl.textContent = filtered.length + ' user' + (filtered.length !== 1 ? 's' : '');
+        var container = document.getElementById('userTableContainer');
+        if (!container) return;
+        var roleLabels = { super_admin: 'Super Admin', admin: 'HR Admin', employee: 'Employee' };
+        var roleColors = { super_admin: 'text-cyan', admin: 'text-purple', employee: 'text-orange' };
+        var rows = filtered.map(function(u) {
+            var lc = APP_DATA.leaves.filter(function(l) { return l.userId === u.id; }).length;
+            var actions = '<div style="display:flex; gap:6px;">'
+                + '<button class="btn btn-secondary btn-sm um-edit" data-id="' + u.id + '" title="Edit"><i class="fas fa-pen"></i></button>'
+                + (u.role !== 'super_admin' ? '<button class="btn btn-danger btn-sm um-del" data-id="' + u.id + '" title="Delete"><i class="fas fa-trash"></i></button>' : '')
+                + '<button class="btn btn-secondary btn-sm um-reset" data-id="' + u.id + '" title="Reset Password"><i class="fas fa-key"></i></button></div>';
+            return '<tr><td><div style="display:flex; align-items:center; gap:10px;"><div style="width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg,var(--accent-cyan),var(--accent-purple)); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:#fff; flex-shrink:0;">' + getInitials(u.fullName) + '</div><div><div style="font-weight:500;">' + u.fullName + '</div><div style="font-size:11px; color:var(--text-muted);">@' + u.username + '</div></div></div></td>'
+                + '<td style="font-size:13px; color:var(--text-secondary);">' + (u.email || '—') + '</td>'
+                + '<td style="font-size:13px; color:var(--text-secondary);">' + (u.department || '—') + '</td>'
+                + '<td><span class="' + roleColors[u.role] + '" style="font-size:13px; font-weight:600;">' + roleLabels[u.role] + '</span></td>'
+                + '<td style="font-weight:600;">' + lc + '</td><td>' + actions + '</td></tr>';
+        }).join('');
+        container.innerHTML = '<table class="data-table"><thead><tr><th>User</th><th>Email</th><th>Department</th><th>Role</th><th>Leaves</th><th>Actions</th></tr></thead><tbody>' + rows + '</tbody></table>';
+
+        container.querySelectorAll('.um-edit').forEach(function(btn) {
+            btn.addEventListener('click', function() { openEditUserModal(parseInt(this.getAttribute('data-id'))); });
+        });
+        container.querySelectorAll('.um-del').forEach(function(btn) {
+            btn.addEventListener('click', function() { confirmDeleteUser(parseInt(this.getAttribute('data-id'))); });
+        });
+        container.querySelectorAll('.um-reset').forEach(function(btn) {
+            btn.addEventListener('click', function() { resetUserPassword(parseInt(this.getAttribute('data-id'))); });
+        });
+    }
+
+    function openAddUserModal() {
+        openModal('<h3 style="font-size:18px; font-weight:700; margin-bottom:20px;">Add New User</h3>'
+            + '<form id="addUserForm">'
+            + '<div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px; margin-bottom:14px;"><div><label class="form-label">Full Name</label><input type="text" class="form-input" id="newUserName" required></div><div><label class="form-label">Username</label><input type="text" class="form-input" id="newUserUsername" required></div></div>'
+            + '<div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px; margin-bottom:14px;"><div><label class="form-label">Email</label><input type="email" class="form-input" id="newUserEmail"></div><div><label class="form-label">Department</label><input type="text" class="form-input" id="newUserDept"></div></div>'
+            + '<div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px; margin-bottom:18px;"><div><label class="form-label">Role</label><select class="form-input" id="newUserRole" required><option value="employee">Employee</option><option value="admin">Admin (HR)</option></select></div><div><label class="form-label">Password</label><input type="password" class="form-input" id="newUserPwd" required minlength="4" value="emp123"></div></div>'
+            + '<div style="display:flex; gap:10px; justify-content:flex-end;"><button type="button" class="btn btn-secondary" id="addUserCancel">Cancel</button><button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> Create User</button></div>'
+            + '</form>');
+        document.getElementById('addUserCancel').addEventListener('click', closeModalForce);
+        document.getElementById('addUserForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            var fullName = document.getElementById('newUserName').value.trim();
+            var username = document.getElementById('newUserUsername').value.trim();
+            var email = document.getElementById('newUserEmail').value.trim();
+            var dept = document.getElementById('newUserDept').value.trim();
+            var role = document.getElementById('newUserRole').value;
+            var password = document.getElementById('newUserPwd').value;
+            if (APP_DATA.users.find(function(u) { return u.username === username; })) { showToast('Username already exists', 'error'); return; }
+            var maxId = APP_DATA.users.reduce(function(mx, u) { return Math.max(mx, u.id); }, 0);
+            APP_DATA.users.push({ id: maxId + 1, username: username, password: password, fullName: fullName, role: role, email: email, department: dept, joinDate: new Date().toISOString().split('T')[0], leaveBalance: { annual: 20, sick: 10, personal: 5, used: 0 } });
+            saveData(APP_DATA); closeModalForce();
+            showToast('User "' + fullName + '" created', 'success'); filterUsers();
+        });
+    }
+
+    function openEditUserModal(id) {
+        var user = APP_DATA.users.find(function(u) { return u.id === id; });
+        if (!user) return;
+        openModal('<h3 style="font-size:18px; font-weight:700; margin-bottom:20px;">Edit User</h3>'
+            + '<form id="editUserForm">'
+            + '<div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px; margin-bottom:14px;"><div><label class="form-label">Full Name</label><input type="text" class="form-input" id="editUserName" value="' + user.fullName + '" required></div><div><label class="form-label">Email</label><input type="email" class="form-input" id="editUserEmail" value="' + (user.email || '') + '"></div></div>'
+            + '<div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px; margin-bottom:18px;"><div><label class="form-label">Department</label><input type="text" class="form-input" id="editUserDept" value="' + (user.department || '') + '"></div>'
+            + '<div><label class="form-label">Role</label><select class="form-input" id="editUserRole"' + (user.role === 'super_admin' ? ' disabled' : '') + '><option value="employee"' + (user.role === 'employee' ? ' selected' : '') + '>Employee</option><option value="admin"' + (user.role === 'admin' ? ' selected' : '') + '>Admin (HR)</option><option value="super_admin"' + (user.role === 'super_admin' ? ' selected' : '') + '>Super Admin</option></select></div></div>'
+            + '<div style="display:flex; gap:10px; justify-content:flex-end;"><button type="button" class="btn btn-secondary" id="editUserCancel">Cancel</button><button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Changes</button></div>'
+            + '</form>');
+        document.getElementById('editUserCancel').addEventListener('click', closeModalForce);
+        document.getElementById('editUserForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            var idx = APP_DATA.users.findIndex(function(u) { return u.id === id; });
+            if (idx === -1) return;
+            APP_DATA.users[idx].fullName = document.getElementById('editUserName').value.trim();
+            APP_DATA.users[idx].email = document.getElementById('editUserEmail').value.trim();
+            APP_DATA.users[idx].department = document.getElementById('editUserDept').value.trim();
+            if (APP_DATA.users[idx].role !== 'super_admin') APP_DATA.users[idx].role = document.getElementById('editUserRole').value;
+            if (id === CURRENT_USER.id) { Object.assign(CURRENT_USER, APP_DATA.users[idx]); document.getElementById('sidebarUserName').textContent = CURRENT_USER.fullName.split(' ').slice(0, 2).join(' '); }
+            saveData(APP_DATA); closeModalForce();
+            showToast('User updated', 'success'); filterUsers();
+        });
+    }
+
+    function confirmDeleteUser(id) {
+        var user = APP_DATA.users.find(function(u) { return u.id === id; });
+        if (!user) return;
+        openModal('<div style="text-align:center;">'
+            + '<div style="width:64px; height:64px; border-radius:50%; background:rgba(239,68,68,0.12); display:flex; align-items:center; justify-content:center; margin:0 auto 16px; font-size:28px; color:var(--accent-red);"><i class="fas fa-exclamation-triangle"></i></div>'
+            + '<h3 style="font-size:18px; font-weight:700; margin-bottom:8px;">Delete User</h3>'
+            + '<p style="color:var(--text-secondary); font-size:14px; margin-bottom:24px;">Are you sure you want to delete <strong>' + user.fullName + '</strong>?</p>'
+            + '<div style="display:flex; gap:10px; justify-content:center;">'
+            + '<button class="btn btn-secondary" id="delUserCancel">Cancel</button>'
+            + '<button class="btn btn-danger" id="delUserConfirm"><i class="fas fa-trash"></i> Delete</button></div></div>');
+        document.getElementById('delUserCancel').addEventListener('click', closeModalForce);
+        document.getElementById('delUserConfirm').addEventListener('click', function() {
+            APP_DATA.users = APP_DATA.users.filter(function(u) { return u.id !== id; });
+            APP_DATA.leaves = APP_DATA.leaves.filter(function(l) { return l.userId !== id; });
+            saveData(APP_DATA); closeModalForce();
+            showToast('User deleted', 'success'); filterUsers();
+        });
+    }
+
+    function resetUserPassword(id) {
+        var user = APP_DATA.users.find(function(u) { return u.id === id; });
+        if (!user) return;
+        openModal('<div style="text-align:center;">'
+            + '<div style="width:64px; height:64px; border-radius:50%; background:rgba(245,158,11,0.12); display:flex; align-items:center; justify-content:center; margin:0 auto 16px; font-size:28px; color:var(--accent-orange);"><i class="fas fa-key"></i></div>'
+            + '<h3 style="font-size:18px; font-weight:700; margin-bottom:8px;">Reset Password</h3>'
+            + '<p style="color:var(--text-secondary); font-size:14px; margin-bottom:20px;">Reset password for <strong>' + user.fullName + '</strong>?</p>'
+            + '<div style="margin-bottom:18px;"><label class="form-label" style="text-align:left;">New Password</label><input type="password" class="form-input" id="resetPwdInput" value="emp123" required minlength="4"></div>'
+            + '<div style="display:flex; gap:10px; justify-content:center;">'
+            + '<button class="btn btn-secondary" id="resetPwdCancel">Cancel</button>'
+            + '<button class="btn btn-primary" id="resetPwdConfirm"><i class="fas fa-key"></i> Reset</button></div></div>');
+        document.getElementById('resetPwdCancel').addEventListener('click', closeModalForce);
+        document.getElementById('resetPwdConfirm').addEventListener('click', function() {
+            var newPwd = document.getElementById('resetPwdInput').value;
+            var idx = APP_DATA.users.findIndex(function(u) { return u.id === id; });
+            if (idx !== -1) { APP_DATA.users[idx].password = newPwd; saveData(APP_DATA); }
+            closeModalForce(); showToast('Password reset', 'success');
+        });
+    }
+    </script>
+</body>
+</html>
