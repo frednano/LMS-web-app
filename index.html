@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leave Management System — YISSIBI TAMO Fred Manuel</title>
+    <title>Leave Management System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -405,6 +405,85 @@
             text-decoration: underline; text-underline-offset: 3px;
         }
         .reset-link:hover { color: #f87171; }
+
+        /* ===================== NOTIFICATIONS ===================== */
+        .notification-bell {
+            position: relative; background: none; border: none;
+            color: var(--text-secondary); font-size: 18px; cursor: pointer;
+            padding: 4px 8px; transition: color 0.3s ease;
+        }
+        .notification-bell:hover { color: var(--text-primary); }
+        .notification-badge {
+            position: absolute; top: -4px; right: -2px;
+            background: var(--accent-red); color: #fff;
+            font-size: 10px; font-weight: 700; padding: 2px 6px;
+            border-radius: 10px; min-width: 18px; text-align: center;
+            animation: pulse-dot 1.5s ease-in-out infinite;
+        }
+        .notification-dropdown {
+            position: absolute; top: 100%; right: 0; margin-top: 8px;
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 12px; width: 380px; max-height: 500px;
+            overflow-y: auto; z-index: 150; box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            display: none;
+        }
+        .notification-dropdown.active { display: block; }
+        .notification-header {
+            padding: 16px; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .notification-header h3 { font-size: 14px; font-weight: 600; }
+        .notification-clear-btn {
+            background: none; border: none; color: var(--text-muted);
+            cursor: pointer; font-size: 12px; font-family: 'Space Grotesk', sans-serif;
+            text-decoration: underline; transition: color 0.3s ease;
+        }
+        .notification-clear-btn:hover { color: var(--accent-red); }
+        .notification-list { padding: 0; }
+        .notification-item {
+            padding: 14px 16px; border-bottom: 1px solid rgba(42,53,80,0.3);
+            display: flex; align-items: flex-start; gap: 12px; cursor: pointer;
+            transition: background 0.2s ease; position: relative;
+        }
+        .notification-item:hover { background: rgba(0,229,200,0.05); }
+        .notification-item:last-child { border-bottom: none; }
+        .notification-item.unread { background: rgba(0,229,200,0.08); }
+        .notification-item.unread::before {
+            content: ''; position: absolute; left: 0; top: 50%;
+            transform: translateY(-50%); width: 3px; height: 40%;
+            background: var(--accent-cyan); border-radius: 0 2px 2px 0;
+        }
+        .notification-icon {
+            width: 32px; height: 32px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; flex-shrink: 0;
+        }
+        .notification-icon.info { background: rgba(59,130,246,0.2); color: var(--accent-blue); }
+        .notification-icon.success { background: rgba(34,197,94,0.2); color: var(--accent-green); }
+        .notification-icon.warning { background: rgba(245,158,11,0.2); color: var(--accent-orange); }
+        .notification-icon.error { background: rgba(239,68,68,0.2); color: var(--accent-red); }
+        .notification-content { flex: 1; min-width: 0; }
+        .notification-title {
+            font-size: 13px; font-weight: 600; color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+        .notification-message {
+            font-size: 12px; color: var(--text-secondary); line-height: 1.3;
+            word-break: break-word;
+        }
+        .notification-time {
+            font-size: 11px; color: var(--text-muted); margin-top: 4px;
+        }
+        .notification-empty {
+            padding: 40px 20px; text-align: center;
+            color: var(--text-muted); font-size: 13px;
+        }
+        .notification-container {
+            position: relative; display: inline-block;
+        }
+        @media (max-width: 480px) {
+            .notification-dropdown { width: 320px; right: -40px; }
+        }
     </style>
 </head>
 <body>
@@ -567,6 +646,19 @@
                     <h1 class="topbar-title" id="pageTitle">Dashboard</h1>
                 </div>
                 <div class="topbar-right">
+                    <div class="notification-container">
+                        <button class="notification-bell" id="notificationBell" title="Notifications">
+                            <i class="fas fa-bell"></i>
+                            <span class="notification-badge" id="notificationBadge" style="display:none;">0</span>
+                        </button>
+                        <div class="notification-dropdown" id="notificationDropdown">
+                            <div class="notification-header">
+                                <h3>Notifications</h3>
+                                <button class="notification-clear-btn" id="clearNotificationsBtn">Clear All</button>
+                            </div>
+                            <div class="notification-list" id="notificationList"></div>
+                        </div>
+                    </div>
                     <span style="font-size:13px; color:var(--text-secondary);" id="currentDate"></span>
                 </div>
             </header>
@@ -610,7 +702,8 @@
     function createFreshData() {
         return {
             users: JSON.parse(JSON.stringify(DEFAULT_USERS)),
-            leaves: JSON.parse(JSON.stringify(DEFAULT_LEAVES))
+            leaves: JSON.parse(JSON.stringify(DEFAULT_LEAVES)),
+            notifications: {}
         };
     }
 
@@ -623,6 +716,8 @@
                     // Verify SuperAdmin still exists with correct password
                     var sa = data.users.find(function(u) { return u.id === 1; });
                     if (sa && sa.username === 'SuperAdmin' && sa.password === '1234') {
+                        // Ensure notifications field exists for backward compatibility
+                        if (!data.notifications) data.notifications = {};
                         return data;
                     }
                 }
@@ -659,6 +754,111 @@
     var APP_DATA = loadData();
     var CURRENT_USER = null;
     var CURRENT_PAGE = 'dashboard';
+    var CURRENT_USER_NOTIFICATIONS = [];
+
+    // ========================================================
+    // NOTIFICATION FUNCTIONS
+    // ========================================================
+    function addNotification(userId, title, message, type) {
+        if (!APP_DATA.notifications) APP_DATA.notifications = {};
+        if (!APP_DATA.notifications[userId]) APP_DATA.notifications[userId] = [];
+
+        var notification = {
+            id: Date.now(),
+            title: title,
+            message: message,
+            type: type || 'info',
+            timestamp: new Date().toISOString(),
+            read: false
+        };
+
+        APP_DATA.notifications[userId].unshift(notification);
+        saveData(APP_DATA);
+
+        // If this is for the current user, update UI
+        if (CURRENT_USER && userId === CURRENT_USER.id) {
+            CURRENT_USER_NOTIFICATIONS = APP_DATA.notifications[userId] || [];
+            updateNotificationUI();
+        }
+    }
+
+    function markNotificationAsRead(notificationId) {
+        if (!CURRENT_USER) return;
+        var notifications = APP_DATA.notifications[CURRENT_USER.id] || [];
+        var notif = notifications.find(function(n) { return n.id === notificationId; });
+        if (notif) {
+            notif.read = true;
+            saveData(APP_DATA);
+            updateNotificationUI();
+        }
+    }
+
+    function clearAllNotifications() {
+        if (!CURRENT_USER) return;
+        APP_DATA.notifications[CURRENT_USER.id] = [];
+        saveData(APP_DATA);
+        CURRENT_USER_NOTIFICATIONS = [];
+        updateNotificationUI();
+        showToast('All notifications cleared', 'info');
+    }
+
+    function updateNotificationUI() {
+        var unreadCount = CURRENT_USER_NOTIFICATIONS.filter(function(n) { return !n.read; }).length;
+        var badge = document.getElementById('notificationBadge');
+        if (unreadCount > 0) {
+            badge.textContent = unreadCount;
+            badge.style.display = 'block';
+        } else {
+            badge.style.display = 'none';
+        }
+        renderNotificationList();
+    }
+
+    function renderNotificationList() {
+        var list = document.getElementById('notificationList');
+        if (!list) return;
+
+        if (CURRENT_USER_NOTIFICATIONS.length === 0) {
+            list.innerHTML = '<div class="notification-empty"><i class="fas fa-inbox" style="font-size:24px; margin-bottom:8px;"></i><p>No notifications yet</p></div>';
+            return;
+        }
+
+        var html = '';
+        CURRENT_USER_NOTIFICATIONS.forEach(function(notif) {
+            var timeAgo = getTimeAgo(notif.timestamp);
+            var iconClass = {
+                'success': 'fa-check-circle',
+                'info': 'fa-info-circle',
+                'warning': 'fa-exclamation-circle',
+                'error': 'fa-times-circle'
+            }[notif.type] || 'fa-bell';
+
+            html += '<div class="notification-item ' + (notif.read ? '' : 'unread') + '" onclick="markNotificationAsRead(' + notif.id + ')">'
+                + '<div class="notification-icon ' + notif.type + '"><i class="fas ' + iconClass + '"></i></div>'
+                + '<div class="notification-content">'
+                + '<div class="notification-title">' + notif.title + '</div>'
+                + '<div class="notification-message">' + notif.message + '</div>'
+                + '<div class="notification-time">' + timeAgo + '</div>'
+                + '</div>'
+                + '</div>';
+        });
+        list.innerHTML = html;
+    }
+
+    function getTimeAgo(timestamp) {
+        var now = new Date();
+        var date = new Date(timestamp);
+        var seconds = Math.floor((now - date) / 1000);
+
+        if (seconds < 60) return 'just now';
+        var minutes = Math.floor(seconds / 60);
+        if (minutes < 60) return minutes + 'm ago';
+        var hours = Math.floor(minutes / 60);
+        if (hours < 24) return hours + 'h ago';
+        var days = Math.floor(hours / 24);
+        if (days < 7) return days + 'd ago';
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
 
     // ========================================================
     // UTILITY FUNCTIONS
@@ -830,6 +1030,19 @@
         APP_DATA.users.push(newUser);
         saveData(APP_DATA);
 
+        // Add welcome notification for new user
+        if (!APP_DATA.notifications) APP_DATA.notifications = {};
+        if (!APP_DATA.notifications[newUser.id]) APP_DATA.notifications[newUser.id] = [];
+        APP_DATA.notifications[newUser.id].unshift({
+            id: Date.now(),
+            title: 'Welcome to Leave Manager',
+            message: 'Your account has been created successfully. You now have ' + newUser.leaveBalance.annual + ' annual, ' + newUser.leaveBalance.sick + ' sick, and ' + newUser.leaveBalance.personal + ' personal leave days available.',
+            type: 'success',
+            timestamp: new Date().toISOString(),
+            read: false
+        });
+        saveData(APP_DATA);
+
         showToast('Account created successfully! Please log in with your credentials.', 'success');
         document.getElementById('registerForm').reset();
         setTimeout(function() {
@@ -878,6 +1091,27 @@
         if (e.key === 'Escape') closeModalForce();
     });
 
+    // Notification bell event listeners
+    document.getElementById('notificationBell').addEventListener('click', function(e) {
+        e.stopPropagation();
+        var dropdown = document.getElementById('notificationDropdown');
+        dropdown.classList.toggle('active');
+    });
+
+    document.getElementById('clearNotificationsBtn').addEventListener('click', function(e) {
+        e.stopPropagation();
+        clearAllNotifications();
+    });
+
+    // Close notification dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        var dropdown = document.getElementById('notificationDropdown');
+        var bell = document.getElementById('notificationBell');
+        if (!dropdown.contains(e.target) && !bell.contains(e.target)) {
+            dropdown.classList.remove('active');
+        }
+    });
+
     // ========================================================
     // CHECK SESSION ON LOAD
     // ========================================================
@@ -909,6 +1143,14 @@
         document.getElementById('sidebarUserName').textContent = CURRENT_USER.fullName.split(' ').slice(0, 2).join(' ');
         var roleLabels = { super_admin: 'Super Admin', admin: 'HR Admin', employee: 'Employee' };
         document.getElementById('sidebarUserRole').textContent = roleLabels[CURRENT_USER.role] || CURRENT_USER.role;
+        
+        // Initialize notifications
+        CURRENT_USER_NOTIFICATIONS = APP_DATA.notifications[CURRENT_USER.id] || [];
+        updateNotificationUI();
+        
+        // Add welcome notification
+        addNotification(CURRENT_USER.id, 'Welcome', 'Welcome back to Leave Manager, ' + CURRENT_USER.fullName.split(' ')[0] + '!', 'success');
+        
         buildSidebarNav();
         document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         navigateTo('dashboard');
@@ -1237,6 +1479,12 @@
         }
         saveData(APP_DATA);
         buildSidebarNav();
+        // Add notification for the employee
+        addNotification(CURRENT_USER.id, 'Leave Request Submitted', 'Your ' + type + ' leave request for ' + days + ' day' + (days > 1 ? 's' : '') + ' has been submitted and is pending approval.', 'info');
+        // Add notification for admins
+        APP_DATA.users.filter(function(u) { return u.role === 'admin' || u.role === 'super_admin'; }).forEach(function(admin) {
+            addNotification(admin.id, 'New Leave Request', CURRENT_USER.fullName + ' submitted a ' + type + ' leave request for ' + days + ' day' + (days > 1 ? 's' : '') + '.', 'info');
+        });
         showToast('Leave request submitted (' + days + ' day' + (days > 1 ? 's' : '') + ')', 'success');
         navigateTo('leave-history');
     }
@@ -1321,6 +1569,11 @@
             }
         }
         saveData(APP_DATA); buildSidebarNav();
+        // Add notification for the employee
+        var approvedUser = APP_DATA.users.find(function(u) { return u.id === l.userId; });
+        if (approvedUser) {
+            addNotification(l.userId, 'Leave Request Approved', 'Your ' + l.leaveType + ' leave request from ' + formatDate(l.startDate) + ' to ' + formatDate(l.endDate) + ' has been approved.', 'success');
+        }
         showToast('Leave request approved', 'success'); filterApprovals();
     }
 
@@ -1329,6 +1582,11 @@
         if (idx === -1) return;
         APP_DATA.leaves[idx].status = 'rejected';
         saveData(APP_DATA); buildSidebarNav();
+        // Add notification for the employee
+        var rejectedUser = APP_DATA.users.find(function(u) { return u.id === l.userId; });
+        if (rejectedUser) {
+            addNotification(l.userId, 'Leave Request Rejected', 'Your ' + l.leaveType + ' leave request from ' + formatDate(l.startDate) + ' to ' + formatDate(l.endDate) + ' has been rejected.', 'error');
+        }
         showToast('Leave request rejected', 'error'); filterApprovals();
     }
 
