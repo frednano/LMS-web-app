@@ -15,12 +15,13 @@ The Leave Management System is an enterprise-grade application that eliminates i
 ## ✨ Key Features
 
 - **Multi-Role Authentication**: Separate authenticated modules for employees and administrators
-- **Leave Management**: Support for multiple leave types (Sick, Casual, Maternity, Paternity, Compassionate, Study)
+- **User Registration**: Self-service account creation with validation and role assignment
+- **Leave Management**: Support for multiple leave types (Annual, Sick, Personal)
 - **Real-Time Tracking**: Monitor leave balances and application status in real-time
+- **Notification System**: Receive real-time notifications for all leave-related actions (submissions, approvals, rejections)
 - **Admin Dashboard**: Comprehensive analytics and reporting capabilities
-- **Secure Cloud Deployment**: Hosted on AWS with high availability and 99.9% uptime guarantee
 - **Responsive Design**: Modern UI built with Tailwind CSS for seamless user experience
-- **Data Security**: Industry-standard encryption and token-based authentication
+- **Data Security**: Industry-standard encryption and session-based authentication
 
 ## 🛠️ Technology Stack
 
@@ -91,7 +92,50 @@ LMS/
 - Manage employee records
 - Configure system settings
 
-## 🔐 Security Features
+## � User Registration & Authentication
+
+### Account Registration
+- New users can self-register by clicking "Create Account" on the login page
+- Registration requires:
+  - Full name
+  - Email address
+  - Department (assigned from predefined list)
+  - Username (must be unique)
+  - Strong password (minimum 6 characters)
+  - Agreement to terms and conditions
+- New employees automatically receive 20 annual, 10 sick, and 5 personal leave days
+
+### Login
+- Users log in with username and password
+- Session management with automatic timeout
+- Option to stay logged in across browser sessions
+
+## 🔔 Notification System
+
+The LMS includes a real-time notification system that keeps users informed of all important events:
+
+### Notification Types
+- **Leave Submission**: Employees are notified when their leave request is successfully submitted
+- **Approval Notification**: Employees receive a notification when their leave request is approved
+- **Rejection Notification**: Employees are notified if their leave request is rejected
+- **Admin Alerts**: Administrators receive notifications for new leave requests requiring review
+- **System Updates**: Users receive system and status notifications
+
+### Accessing Notifications
+- Click the **bell icon** in the top-right corner of the application
+- View all unread and past notifications in the dropdown panel
+- Notifications display:
+  - Notification title and detailed message
+  - Timestamp (relative time like "5m ago", "2h ago", etc.)
+  - Status indicator (unread notifications have a left border highlight)
+- Mark notifications as read by clicking on them
+- Clear all notifications using the "Clear All" button
+
+### Notification Badge
+- The notification bell displays a red badge showing the count of unread notifications
+- Badge automatically updates when new notifications arrive or are marked as read
+
+## �🔐 Security Features
 
 - Token-based authentication
 - Encrypted password storage
